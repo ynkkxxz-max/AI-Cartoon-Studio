@@ -70,10 +70,10 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
   };
 
   return (
-    <div className="bg-studio-card rounded-2xl border border-studio-cardBorder p-4 shadow-xl">
+    <div className="bg-[#111327] rounded-2xl border border-[#1f2343] p-4 shadow-xl">
       {/* Header and top tab buttons */}
-      <div className="flex items-center justify-between pb-3 border-b border-studio-cardBorder/60">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between pb-3 border-b border-[#1f2343]/80">
+        <div className="flex items-center gap-2.5">
           <Film className="w-5 h-5 text-purple-400" />
           <div className="text-left">
             <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
@@ -83,18 +83,18 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-[#0e101f] p-1 rounded-xl border border-studio-cardBorder">
+        <div className="flex items-center gap-1.5 bg-[#0d0f22] p-1 rounded-xl border border-[#23274c]">
           <button
             onClick={() => setActiveTab('create')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'create'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/40'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-600 text-white shadow-md shadow-purple-900/40 border border-purple-400/40'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
             <span>បង្កើតវីដេអូ</span>
-            <span className="text-[10px] opacity-80">(Create Video)</span>
+            <span className="text-[10px] opacity-80 font-normal">(Create Video)</span>
           </button>
 
           <button
@@ -102,31 +102,31 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
               setActiveTab('editor');
               onSwitchToEditor();
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'editor'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Video className="w-3.5 h-3.5" />
             <span>កែវីដេអូ</span>
-            <span className="text-[10px] opacity-80">(AI Video Editor)</span>
+            <span className="text-[10px] opacity-80 font-normal">(AI Video Editor)</span>
           </button>
         </div>
       </div>
 
       {/* Form Content */}
-      <div className="pt-3 space-y-3 text-left">
+      <div className="pt-3 space-y-3.5 text-left">
         {/* Story Prompt */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-semibold text-slate-200">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-bold text-slate-200">
               គំនិតរឿង / Story Prompt <span className="text-rose-500">*</span>
             </label>
             <button
               type="button"
               onClick={loadExamplePrompt}
-              className="text-[11px] text-purple-400 hover:text-purple-300 underline underline-offset-2"
+              className="text-xs text-purple-400 hover:text-purple-300 underline underline-offset-2 font-medium"
             >
               + ឧទាហរណ៍គំរូ (Example Prompt)
             </button>
@@ -137,9 +137,9 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
               onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
               rows={3}
               placeholder="បញ្ចូលគំនិត គំរូសង្ខេបដែលអ្នកចង់បាន...&#10;Enter your story idea or a short story description here..."
-              className="w-full bg-[#0d0e1c] border border-studio-cardBorder rounded-xl p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none leading-relaxed"
+              className="w-full bg-[#0b0c1b] border border-[#23274c] rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none leading-relaxed"
             />
-            <span className="absolute bottom-2 right-3 text-[10px] text-slate-500 font-mono">
+            <span className="absolute bottom-2.5 right-3 text-[11px] text-slate-400 font-mono">
               {prompt.length} / 2000
             </span>
           </div>
@@ -148,15 +148,15 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
         {/* 3 Dropdown Selectors */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
           {/* Duration */}
-          <div className="bg-[#0e101f] border border-studio-cardBorder/80 rounded-xl p-2.5">
-            <label className="block text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-purple-400" />
+          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-purple-400" />
               រយៈពេល / Duration
             </label>
             <select
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              className="w-full bg-[#14162a] border border-studio-cardBorder rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-medium"
+              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
             >
               <option value="5-20 minutes">⏱️ 5–20 នាទី / 5–20 min</option>
               <option value="5 minutes">⏱️ 5 នាទី / 5 minutes</option>
@@ -167,15 +167,15 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
           </div>
 
           {/* Resolution */}
-          <div className="bg-[#0e101f] border border-studio-cardBorder/80 rounded-xl p-2.5">
-            <label className="block text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
-              <Monitor className="w-3 h-3 text-blue-400" />
+          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+              <Monitor className="w-3.5 h-3.5 text-blue-400" />
               គុណភាព / Resolution
             </label>
             <select
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
-              className="w-full bg-[#14162a] border border-studio-cardBorder rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-medium"
+              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
             >
               <option value="1080p">🖥️ 1080p (Full HD)</option>
               <option value="4k">🖥️ 4K (Ultra HD)</option>
@@ -184,15 +184,15 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
           </div>
 
           {/* Animation Style */}
-          <div className="bg-[#0e101f] border border-studio-cardBorder/80 rounded-xl p-2.5">
-            <label className="block text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
-              <Palette className="w-3 h-3 text-pink-400" />
+          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+              <Palette className="w-3.5 h-3.5 text-pink-400" />
               រចនាប័ទ្ម / Style
             </label>
             <select
               value={style}
               onChange={(e) => setStyle(e.target.value)}
-              className="w-full bg-[#14162a] border border-studio-cardBorder rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-medium"
+              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
             >
               <option value="3D Cartoon (Pixar-like)">🎨 3D Cartoon (Pixar-like)</option>
               <option value="2D Anime Expressive">🎨 2D Anime Expressive</option>
@@ -204,27 +204,27 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
 
         {/* Output Languages Selection with exact flag badges */}
         <div>
-          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+          <label className="block text-xs font-bold text-slate-200 mb-1.5">
             ភាសាបញ្ចេញ / Output Languages
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             {/* Khmer */}
             <button
               type="button"
               onClick={() => toggleLanguage('km')}
-              className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 languages.km
-                  ? 'bg-purple-950/50 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0d0e1c] border-studio-cardBorder text-slate-400'
+                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
+                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded overflow-hidden shadow-sm flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
                   <img src="/assets/flag_kh.png" alt="Khmer" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold">ខ្មែរ</span>
-                  <span className="text-[10px] text-slate-400">Khmer</span>
+                  <span className="text-xs font-bold">ខ្មែរ</span>
+                  <span className="text-[10px] text-slate-400 font-medium">Khmer</span>
                 </div>
               </div>
               <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.km ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
@@ -236,19 +236,19 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
             <button
               type="button"
               onClick={() => toggleLanguage('en')}
-              className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 languages.en
-                  ? 'bg-purple-950/50 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0d0e1c] border-studio-cardBorder text-slate-400'
+                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
+                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded overflow-hidden shadow-sm flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
                   <img src="/assets/flag_us.png" alt="English" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold">អង់គ្លេស</span>
-                  <span className="text-[10px] text-slate-400">English</span>
+                  <span className="text-xs font-bold">អង់គ្លេស</span>
+                  <span className="text-[10px] text-slate-400 font-medium">English</span>
                 </div>
               </div>
               <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.en ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
@@ -260,19 +260,19 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
             <button
               type="button"
               onClick={() => toggleLanguage('zh')}
-              className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 languages.zh
-                  ? 'bg-purple-950/50 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0d0e1c] border-studio-cardBorder text-slate-400'
+                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
+                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-4 rounded overflow-hidden shadow-sm flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
                   <img src="/assets/flag_cn.png" alt="Chinese" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold">ចិន</span>
-                  <span className="text-[10px] text-slate-400">Chinese</span>
+                  <span className="text-xs font-bold">ចិន</span>
+                  <span className="text-[10px] text-slate-400 font-medium">Chinese</span>
                 </div>
               </div>
               <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.zh ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
@@ -287,7 +287,7 @@ export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
           type="button"
           disabled={isGenerating}
           onClick={handleGenerate}
-          className="w-full py-3 px-4 rounded-xl font-bold text-xs md:text-sm bg-gradient-to-r from-[#8b5cf6] via-[#7c3aed] to-[#9333ea] hover:brightness-110 text-white shadow-lg shadow-purple-900/50 transition-all flex items-center justify-center gap-2 border border-purple-400/40 active:scale-[0.99] disabled:opacity-50"
+          className="w-full py-3.5 px-4 rounded-xl font-bold text-xs md:text-sm bg-gradient-to-r from-[#8b5cf6] via-[#7c3aed] to-[#9333ea] hover:brightness-110 text-white shadow-lg shadow-purple-900/50 transition-all flex items-center justify-center gap-2 border border-purple-400/40 active:scale-[0.99] disabled:opacity-50"
         >
           <Sparkles className="w-4 h-4 text-purple-200" />
           <span>{isGenerating ? 'កំពុងរៀបចំប្លង់សាច់រឿង... (Generating Plan...)' : 'បង្កើតវីដេអូ 3 វីដេអូ Generate 3 Videos'}</span>

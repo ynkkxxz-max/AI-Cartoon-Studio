@@ -95,7 +95,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0c16] flex flex-col text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-[#090a16] flex flex-col text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -104,7 +104,7 @@ export function App() {
         onOpenProjects={() => setIsProjectsOpen(true)}
       />
 
-      {/* Main Body Layout: Sidebar + Content Area */}
+      {/* Main Body Layout: Sidebar + Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar
@@ -115,12 +115,12 @@ export function App() {
         />
 
         {/* Scrollable Center & Right Content */}
-        <main className="flex-1 overflow-y-auto p-3 space-y-3">
+        <main className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Top Hero Banner */}
           <HeroBanner />
 
           {/* Primary Top Production Grid (5 cols Create Card, 4 cols Characters & Preview, 3 cols Voice Engine) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
             {/* Left Column: Create Video Card */}
             <div className="lg:col-span-5">
               <CreateVideoCard
@@ -131,7 +131,7 @@ export function App() {
             </div>
 
             {/* Center Column: Characters & Video Preview */}
-            <div className="lg:col-span-4 space-y-3">
+            <div className="lg:col-span-4 space-y-4">
               <CharacterSection
                 characters={characters}
                 selectedCharacters={selectedCharacters}
