@@ -43,3 +43,4 @@ def generate_story_scenes(prompt: str, duration_preset: str, languages: List[str
         "scenes": scenes,
         "languages": languages
     }
+

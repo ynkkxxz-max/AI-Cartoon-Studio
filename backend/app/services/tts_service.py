@@ -109,3 +109,4 @@ async def generate_speech_audio(
     communicate = edge_tts.Communicate(text=text, voice=voice_id, rate=rate, pitch=pitch)
     await communicate.save(str(out_path))
     return out_path
+

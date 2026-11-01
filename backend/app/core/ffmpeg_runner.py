@@ -73,3 +73,4 @@ def probe_video(file_path: Path):
             "format": file_path.suffix.lstrip(".").lower(),
             "error": str(e)
         }
+

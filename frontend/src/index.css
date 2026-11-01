@@ -4,25 +4,26 @@
 
 @layer base {
   body {
-    background-color: #0c0d19;
+    background-color: #0b0c16;
     color: #f1f5f9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Kantumruy Pro", sans-serif;
+    font-family: 'Kantumruy Pro', 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
     overflow-x: hidden;
   }
 }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f1123;
+  background: #0e101f;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2b2f54;
-  border-radius: 3px;
+  background: #252847;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #474f85;
+  background: #3c4273;
 }

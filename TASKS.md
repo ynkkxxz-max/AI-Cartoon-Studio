@@ -48,3 +48,4 @@
 - [ ] **T5.2 (Codex):** Synchronized Edge-TTS generation for all 3 dialogue tracks.
 - [ ] **T5.3 (Codex):** Assemble 3 final videos: `Cartoon_Khmer.mp4`, `Cartoon_English.mp4`, `Cartoon_Chinese.mp4`.
 - [ ] **T5.4 (Antigravity):** Tri-video download and preview selector in Export Center.
+

@@ -58,3 +58,4 @@ def add_character(data: CharacterCreate):
         "category": data.category,
         "created_at": now
     }
+

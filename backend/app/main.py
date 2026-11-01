@@ -38,3 +38,4 @@ def read_root():
         "status": "online",
         "documentation": "/docs"
     }
+

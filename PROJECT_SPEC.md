@@ -62,3 +62,4 @@ The user interface matches the reference design: a dark-mode studio dashboard wi
 - **Hardware Profile:** 16GB RAM, 250GB SSD; assumes CPU/GPU hybrid operation with CPU fallback for FFmpeg and cloud inference for heavy AI tasks.
 - **Integrity Rule:** No fake buttons or mocked responses that misrepresent system status.
 - **Security:** Zero credential leaks, environment-isolated API keys (`.env.local` / `.env`), private media assets stored under local project folder.
+

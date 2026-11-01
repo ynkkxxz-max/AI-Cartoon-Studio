@@ -122,3 +122,4 @@ def delete_project(project_id: str):
     conn.commit()
     conn.close()
     return {"status": "deleted", "id": project_id}
+

@@ -14,7 +14,7 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSubtitles, setShowSubtitles] = useState<boolean>(true);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(30);
+  const duration = 30;
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const togglePlay = () => {
@@ -28,15 +28,6 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
     }
   };
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-      if (videoRef.current.duration) {
-        setDuration(videoRef.current.duration);
-      }
-    }
-  };
-
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
@@ -44,9 +35,9 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
   };
 
   return (
-    <div className="bg-studio-card rounded-2xl border border-studio-cardBorder p-3.5 shadow-xl">
+    <div className="bg-studio-card rounded-2xl border border-studio-cardBorder p-3.5 shadow-xl text-left">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-studio-cardBorder/60">
+      <div className="flex items-center justify-between pb-2 border-b border-studio-cardBorder/60">
         <div className="flex items-center gap-2">
           <Video className="w-4 h-4 text-purple-400" />
           <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
@@ -60,42 +51,49 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
         </span>
       </div>
 
-      {/* Video Box */}
-      <div className="relative mt-2.5 rounded-xl overflow-hidden bg-black aspect-video border border-studio-cardBorder group">
-        <video
-          ref={videoRef}
-          src="/api/editor/sample-preview"
-          poster="/assets/preview_poster.jpg"
-          onTimeUpdate={handleTimeUpdate}
-          onEnded={() => setIsPlaying(false)}
-          className="w-full h-full object-cover"
+      {/* Video Box matching exact 3D Cartoon scene from mockup */}
+      <div className="relative mt-2.5 rounded-xl overflow-hidden bg-black aspect-[16/9.5] border border-studio-cardBorder/80 group">
+        <img
+          src="/assets/preview_screen.jpg"
+          alt="3D Animated Cartoon Preview"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-90' : 'opacity-100'}`}
         />
 
-        {/* Big Center Play Overlay Button when paused */}
+        {/* Hidden Audio / Video stream */}
+        <audio
+          ref={videoRef as any}
+          src="/api/voices/playback/tts_e6cb520169.mp3"
+          onTimeUpdate={() => {
+            if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
+          }}
+          onEnded={() => setIsPlaying(false)}
+        />
+
+        {/* Center Play Button Overlay */}
         {!isPlaying && (
           <button
             onClick={togglePlay}
-            className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-purple-600/80 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-sm shadow-2xl transition-all hover:scale-110"
+            className="absolute inset-0 m-auto w-11 h-11 rounded-full bg-purple-600/90 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-md shadow-2xl transition-all hover:scale-110 ring-4 ring-purple-500/30"
           >
-            <Play className="w-6 h-6 ml-1" />
+            <Play className="w-5 h-5 ml-0.5 fill-white" />
           </button>
         )}
 
-        {/* Subtitles Overlay */}
+        {/* Subtitles Overlay (CC) */}
         {showSubtitles && (
-          <div className="absolute bottom-11 inset-x-2 text-center pointer-events-none transition-all">
-            <span className="inline-block px-3 py-1 rounded bg-black/80 backdrop-blur-md text-[11px] text-amber-300 font-medium border border-white/10 shadow-lg">
+          <div className="absolute bottom-9 inset-x-2 text-center pointer-events-none">
+            <span className="inline-block px-2.5 py-0.5 rounded bg-black/85 backdrop-blur-md text-[10px] text-amber-300 font-semibold border border-white/10 shadow-lg">
               {currentSubtitleKh}
-              <div className="text-[9px] text-slate-300 font-normal">{currentSubtitleEn}</div>
+              <div className="text-[8px] text-slate-300 font-normal">{currentSubtitleEn}</div>
             </span>
           </div>
         )}
 
-        {/* Bottom Control Bar */}
-        <div className="absolute bottom-0 inset-x-0 h-9 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-2.5 flex items-center justify-between text-white text-xs z-20">
+        {/* Bottom Video Controls matching mockup */}
+        <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-black/95 via-black/80 to-transparent px-2.5 flex items-center justify-between text-white text-xs z-20">
           <div className="flex items-center gap-2">
             <button onClick={togglePlay} className="hover:text-purple-300 transition-colors">
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-white" />}
             </button>
             <span className="text-[10px] text-slate-300 font-mono">
               {formatTime(currentTime)} / {formatTime(duration)}
@@ -106,7 +104,7 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
             <button
               onClick={() => setShowSubtitles(!showSubtitles)}
               title="បឋមកថាអក្សររត់ Subtitles (CC)"
-              className={`p-1 rounded ${showSubtitles ? 'text-purple-300 bg-purple-900/50' : 'hover:text-white'}`}
+              className={`p-1 rounded ${showSubtitles ? 'text-purple-300 bg-purple-900/60' : 'hover:text-white'}`}
             >
               <Subtitles className="w-3.5 h-3.5" />
             </button>
@@ -125,7 +123,7 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
             </button>
 
             <button
-              onClick={() => alert("ការកំណត់មើលជាមុន (Preview Quality Settings): 1080p Playback, H.264 AAC")}
+              onClick={() => alert("Preview Quality: 1080p Full HD H.264 Playback")}
               title="ការកំណត់ Settings"
               className="p-1 hover:text-white"
             >
@@ -134,12 +132,11 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
 
             <button
               onClick={() => {
-                if (videoRef.current) {
-                  if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                  } else {
-                    videoRef.current.requestFullscreen();
-                  }
+                const el = document.fullscreenElement;
+                if (!el) {
+                  document.documentElement.requestFullscreen?.();
+                } else {
+                  document.exitFullscreen?.();
                 }
               }}
               title="ពេញអេក្រង់ Fullscreen"

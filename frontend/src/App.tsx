@@ -95,7 +95,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-studio-bg flex flex-col text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-[#0b0c16] flex flex-col text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -115,13 +115,13 @@ export function App() {
         />
 
         {/* Scrollable Center & Right Content */}
-        <main className="flex-1 overflow-y-auto p-3.5 space-y-3.5">
+        <main className="flex-1 overflow-y-auto p-3 space-y-3">
           {/* Top Hero Banner */}
           <HeroBanner />
 
-          {/* Primary Top Production Grid (3 Columns: Create Form, Characters & Preview, Voice Engine) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
-            {/* Left Column: Create Video Card (5 cols) */}
+          {/* Primary Top Production Grid (5 cols Create Card, 4 cols Characters & Preview, 3 cols Voice Engine) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+            {/* Left Column: Create Video Card */}
             <div className="lg:col-span-5">
               <CreateVideoCard
                 onProjectCreated={handleProjectCreated}
@@ -130,8 +130,8 @@ export function App() {
               />
             </div>
 
-            {/* Center Column: Characters & Video Preview (4 cols) */}
-            <div className="lg:col-span-4 space-y-3.5">
+            {/* Center Column: Characters & Video Preview */}
+            <div className="lg:col-span-4 space-y-3">
               <CharacterSection
                 characters={characters}
                 selectedCharacters={selectedCharacters}
@@ -146,7 +146,7 @@ export function App() {
               />
             </div>
 
-            {/* Right Column: AI Smart Voice & Sound (3 cols) */}
+            {/* Right Column: AI Smart Voice & Sound */}
             <div className="lg:col-span-3">
               <VoiceEnginePanel catalog={voiceCatalog} />
             </div>

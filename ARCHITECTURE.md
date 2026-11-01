@@ -81,3 +81,4 @@ AI Cartoon Studio/
   - Frontend UI: `http://localhost:5173` (or `http://localhost:3000`)
 - **CORS:** Configured in FastAPI to allow local browser origins.
 - **Data Persistence:** SQLite database stored at `storage/studio.db` with structured tables for `projects`, `characters`, `scenes`, `voice_profiles`, and `render_jobs`.
+

@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, sys
   const storagePct = systemStatus ? systemStatus.storage_pct : 39;
 
   return (
-    <aside className="w-56 bg-studio-sidebar border-r border-studio-cardBorder flex flex-col justify-between p-3 select-none">
+    <aside className="w-52 bg-studio-sidebar border-r border-studio-cardBorder flex flex-col justify-between p-2.5 select-none flex-shrink-0">
       {/* Navigation Links */}
       <div className="space-y-1">
         {navItems.map((item) => {
@@ -53,16 +53,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, sys
                   setActiveView(item.id);
                 }
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all group ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all ${
                 isActive
-                  ? 'bg-gradient-to-r from-purple-700/80 to-purple-600/60 text-white shadow-lg shadow-purple-900/30 font-medium'
+                  ? 'bg-gradient-to-r from-purple-700 to-indigo-600 text-white shadow-lg shadow-purple-900/40 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
-              <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium leading-tight">{item.labelKh}</span>
-                <span className={`text-[10px] leading-tight ${isActive ? 'text-purple-200' : 'text-slate-500'}`}>
+              <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold leading-tight truncate">{item.labelKh}</span>
+                <span className={`text-[10px] leading-tight truncate ${isActive ? 'text-purple-200' : 'text-slate-500'}`}>
                   {item.labelEn}
                 </span>
               </div>
@@ -72,16 +72,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, sys
       </div>
 
       {/* Storage & Edition Card */}
-      <div className="pt-4 space-y-2 border-t border-studio-cardBorder/60">
-        <div className="bg-[#121424] rounded-xl p-3 border border-studio-cardBorder/80">
-          <div className="flex items-center justify-between text-xs text-slate-300 mb-1.5">
-            <span className="flex items-center gap-1.5 font-medium text-[11px]">
+      <div className="pt-3 space-y-2 border-t border-studio-cardBorder/60">
+        <div className="bg-[#121424] rounded-xl p-2.5 border border-studio-cardBorder/80">
+          <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
+            <span className="flex items-center gap-1.5 font-semibold text-[11px]">
               <HardDrive className="w-3.5 h-3.5 text-purple-400" />
               ការផ្ទុក (Storage)
             </span>
           </div>
 
-          <div className="text-[11px] text-slate-400 mb-1 flex justify-between">
+          <div className="text-[10px] text-slate-400 mb-1 flex justify-between font-mono">
             <span>{storageUsed} GB / {storageTotal} GB</span>
             <span className="text-purple-400 font-semibold">{storagePct}%</span>
           </div>
@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, sys
         </div>
 
         {/* Edition Pill */}
-        <div className="bg-gradient-to-r from-purple-950/60 to-indigo-950/60 border border-purple-500/30 rounded-xl p-2.5 flex items-center justify-center gap-2 text-purple-300 shadow-inner">
+        <div className="bg-gradient-to-r from-purple-950/70 to-indigo-950/70 border border-purple-500/40 rounded-xl p-2 flex items-center justify-center gap-1.5 text-purple-300 shadow-inner">
           <Crown className="w-4 h-4 text-amber-400" />
           <span className="text-xs font-bold tracking-wide">Personal Edition</span>
         </div>

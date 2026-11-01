@@ -34,3 +34,4 @@ def stream_audio(filename: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path, media_type="audio/mpeg")
+

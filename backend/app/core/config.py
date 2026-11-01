@@ -24,3 +24,4 @@ except Exception:
 HOST = os.getenv("STUDIO_HOST", "127.0.0.1")
 PORT = int(os.getenv("STUDIO_PORT", "8000"))
 DEBUG = os.getenv("STUDIO_DEBUG", "True").lower() == "true"
+

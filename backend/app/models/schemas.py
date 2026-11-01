@@ -49,3 +49,4 @@ class VideoProcessRequest(BaseModel):
     }
     aspect_ratio: str = "9:16" # 9:16, 16:9, 1:1
     quality: str = "1080p" # 1080p, 4k
+
