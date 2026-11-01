@@ -1,0 +1,107 @@
+import React from 'react';
+import { Clapperboard, Bell, User, Sparkles, FolderKanban, Wrench } from 'lucide-react';
+
+interface HeaderProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  projectCount: number;
+  onOpenProjects: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, projectCount, onOpenProjects }) => {
+  return (
+    <header className="h-14 border-b border-studio-cardBorder bg-studio-sidebar/90 backdrop-blur-md px-4 flex items-center justify-between sticky top-0 z-50">
+      {/* Brand */}
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 p-[1.5px] flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="w-full h-full bg-[#0e101f] rounded-[7px] flex items-center justify-center">
+            <Clapperboard className="w-5 h-5 text-purple-400" />
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-sm tracking-wide text-white flex items-center gap-1.5">
+            AI Cartoon Studio
+            <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              Personal
+            </span>
+          </span>
+          <span className="text-[10px] text-slate-400">Personal Edition</span>
+        </div>
+      </div>
+
+      {/* Top Nav Pills */}
+      <nav className="flex items-center gap-1.5 bg-[#121426] p-1 rounded-xl border border-studio-cardBorder">
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            activeTab === 'dashboard'
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/50 shadow-inner'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+          }`}
+        >
+          <span>ផ្ទាំងគ្រប់គ្រង</span>
+          <span className="text-[11px] opacity-75">Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('create')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            activeTab === 'create'
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span>បង្កើត</span>
+          <span className="text-[11px] opacity-75">Create</span>
+        </button>
+
+        <button
+          onClick={onOpenProjects}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all"
+        >
+          <FolderKanban className="w-3.5 h-3.5 text-blue-400" />
+          <span>គម្រោងរបស់ខ្ញុំ</span>
+          <span className="text-[11px] opacity-75">My Projects</span>
+          {projectCount > 0 && (
+            <span className="ml-0.5 px-1.5 py-0.2 text-[10px] bg-purple-500/30 text-purple-200 rounded-full font-bold">
+              {projectCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => alert("ឧបករណ៍ AI (AI Tools): Script Assistant, Voice Cloner, Character LoRA Builder នឹងត្រូវបានបន្ថែមនៅ Phase 4")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all"
+        >
+          <Wrench className="w-3.5 h-3.5 text-slate-400" />
+          <span>ឧបករណ៍ AI</span>
+          <span className="text-[11px] opacity-75">AI Tools</span>
+        </button>
+      </nav>
+
+      {/* Right User Actions */}
+      <div className="flex items-center gap-3">
+        <button
+          title="ការជូនដំណឹង Notifications"
+          className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+        >
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#0c0d19]"></span>
+        </button>
+
+        <div className="flex items-center gap-2 pl-2 border-l border-studio-cardBorder">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 p-[1.5px] flex items-center justify-center">
+            <div className="w-full h-full bg-[#141628] rounded-full flex items-center justify-center text-purple-300">
+              <User className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="hidden md:flex flex-col text-left">
+            <span className="text-xs font-semibold text-slate-200">គណនីផ្ទាល់ខ្លួន</span>
+            <span className="text-[10px] text-slate-400">My Account</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
