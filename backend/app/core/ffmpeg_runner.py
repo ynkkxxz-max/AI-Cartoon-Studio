@@ -6,7 +6,7 @@ from backend.app.core.config import FFMPEG_PATH
 
 def get_ffmpeg_version():
     try:
-        res = subprocess.run([FFMPEG_PATH, "-version"], capture_output=True, text=True, check=True)
+        res = subprocess.run([FFMPEG_PATH, "-version"], capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         first_line = res.stdout.splitlines()[0] if res.stdout else "FFmpeg available"
         return first_line
     except Exception as e:
@@ -19,7 +19,7 @@ def probe_video(file_path: Path):
     try:
         # Run ffmpeg -i to get stream info from stderr
         cmd = [FFMPEG_PATH, "-i", str(file_path)]
-        res = subprocess.run(cmd, capture_output=True, text=True)
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
         stderr = res.stderr
 
         duration_sec = 0.0

@@ -21,8 +21,10 @@
 
 ---
 
-## Phase 2: Real Video Editing (Upcoming)
-- [ ] **T2.1 (Codex):** FFmpeg silence detection filters (`silencedetect`) and automated cut points.
+## Phase 2: Real Video Editing (Backend ready; frontend integration pending)
+- [x] **T2.1 (Codex, 2026-11-02):** FFmpeg silence detection and candidate keep/cut spans, verified with real audio. Automatic application still needs frontend wiring.
+- [x] **T2.1a (Codex, 2026-11-02):** Validated time-range trim endpoint; sources preserved.
+- [x] **T2.1b (Codex, 2026-11-02):** Ordered multi-clip merge endpoint, direct cuts or video/audio crossfades, mixed dimensions/audio supported; eight real-media tests pass.
 - [ ] **T2.2 (Antigravity):** Multi-clip preview timeline with drag handles.
 - [ ] **T2.3 (Codex):** Transcoding pipeline for 9:16 vertical crop and 16:9 pan-and-scan.
 - [ ] **T2.4 (Antigravity):** Real-time progress bar showing FFmpeg encoding frame count and ETA.

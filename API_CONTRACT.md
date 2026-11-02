@@ -4,6 +4,8 @@ This document defines the strict REST API specifications between the Frontend (A
 
 **Base URL:** `http://127.0.0.1:8000/api`
 
+**2026-11-02 addition:** Local Phase 2 endpoints `POST /editor/silence`, `POST /editor/trim`, and `POST /editor/merge` are implemented and tested on the canonical backend. See `PHASE2_BACKEND_HANDOFF.md` for validated payloads, synchronous completion responses and error semantics. The legacy `/editor/process` description below is a target contract; its current implementation only performs aspect conversion and does not implement every listed feature.
+
 ---
 
 ## 1. System & Health

@@ -32,6 +32,10 @@ export function App() {
 
   const editorRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    if (activeTab === 'video_editor') editorRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [activeTab]);
+
   const loadData = async () => {
     try {
       const [sys, chars, voices, projs] = await Promise.all([

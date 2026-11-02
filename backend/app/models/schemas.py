@@ -50,3 +50,18 @@ class VideoProcessRequest(BaseModel):
     aspect_ratio: str = "9:16" # 9:16, 16:9, 1:1
     quality: str = "1080p" # 1080p, 4k
 
+class SilenceDetectRequest(BaseModel):
+    video_id: str
+    noise_db: Optional[int] = -30
+    min_duration: Optional[float] = 0.5
+
+class TrimVideoRequest(BaseModel):
+    video_id: str
+    start_time: float
+    end_time: float
+
+class MergeVideosRequest(BaseModel):
+    video_ids: List[str]
+
+class SilenceCutRequest(BaseModel):
+    video_id: str

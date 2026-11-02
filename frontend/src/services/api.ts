@@ -57,6 +57,15 @@ export interface Project {
   metadata?: any;
 }
 
+export interface SilenceAnalysis {
+  video_id: string;
+  video_duration: number;
+  silence_intervals: Array<{ start: number; end: number; duration: number }>;
+  speaking_intervals: Array<{ start: number; end: number; duration: number }>;
+  total_silence_seconds: number;
+  silence_count: number;
+}
+
 const API_BASE = '/api';
 
 export const api = {
@@ -128,6 +137,46 @@ export const api = {
     return res.json();
   },
 
+  async detectSilence(videoId: string, noiseDb = -30, minDuration = 0.5): Promise<SilenceAnalysis> {
+    const res = await fetch(`${API_BASE}/editor/detect-silence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_id: videoId, noise_db: noiseDb, min_duration: minDuration }),
+    });
+    if (!res.ok) throw new Error('Failed to detect silence');
+    return res.json();
+  },
+
+  async trimVideo(videoId: string, startTime: number, endTime: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/editor/trim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_id: videoId, start_time: startTime, end_time: endTime }),
+    });
+    if (!res.ok) throw new Error('Failed to trim video');
+    return res.json();
+  },
+
+  async mergeVideos(videoIds: string[]): Promise<any> {
+    const res = await fetch(`${API_BASE}/editor/merge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_ids: videoIds }),
+    });
+    if (!res.ok) throw new Error('Failed to merge videos');
+    return res.json();
+  },
+
+  async applySilenceCut(videoId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/editor/apply-silence-cut`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_id: videoId }),
+    });
+    if (!res.ok) throw new Error('Failed to remove silence');
+    return res.json();
+  },
+
   async processVideo(params: any): Promise<any> {
     const res = await fetch(`${API_BASE}/editor/process`, {
       method: 'POST',
@@ -138,4 +187,3 @@ export const api = {
     return res.json();
   }
 };
-
