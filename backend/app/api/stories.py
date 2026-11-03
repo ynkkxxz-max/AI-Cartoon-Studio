@@ -244,3 +244,4 @@ def update_scene(project_id: str, scene_number: int, update: SceneUpdateRequest)
         created_at=now,
         updated_at=now
     )
+
