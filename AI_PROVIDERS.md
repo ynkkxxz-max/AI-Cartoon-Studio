@@ -45,3 +45,4 @@ All AI interactions run through provider-independent abstraction interfaces:
 ### Image & Video Generation
 - **Planned Adapters:** Configurable cloud video/image APIs (Runway Gen-3, Luma Dream Machine, Kling, Stable Diffusion).
 - **Execution:** Scene-level generation with background job queue.
+

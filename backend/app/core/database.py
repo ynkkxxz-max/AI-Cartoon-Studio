@@ -66,6 +66,24 @@ def init_db():
     )
     """)
 
+    # Story Scripts & Screenplays table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS story_scripts (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        synopsis TEXT,
+        genre TEXT,
+        style TEXT,
+        scenes TEXT NOT NULL, -- JSON array of scenes
+        version INTEGER DEFAULT 1,
+        provider_used TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+    """)
+
     # Insert default characters if empty
     cursor.execute("SELECT COUNT(*) as count FROM characters")
     count = cursor.fetchone()["count"]

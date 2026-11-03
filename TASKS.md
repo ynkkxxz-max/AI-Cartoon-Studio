@@ -28,13 +28,14 @@
 - [x] **T2.4 (Antigravity):** Video aspect ratio transcode (9:16 vertical TikTok, 16:9 YouTube, 1:1 Square).
 - [x] **T2.5 (Shared):** 31 automated backend tests and production build passing.
 
-### Phase 3 — AI Story Engine & Script Generation (IN PROGRESS 🟡)
-- [ ] **T3.1 (Codex):** Implement LLM Provider Adapter (Google Gemini 1.5 / OpenAI) with structured JSON output.
-- [ ] **T3.2 (Codex):** Generate multi-scene scripts with character dialogue, narration, and camera directions.
-- [ ] **T3.3 (Antigravity):** Interactive Script Editor with scene breakdown and duration estimates.
-- [ ] **T3.4 (Codex):** Persist story scripts and version revisions in database.
+### Phase 3 — AI Story Engine & Script Generation (COMPLETED & VERIFIED ✅)
+- [x] **T3.1 (Codex):** Implement LLM Provider Adapter (Google Gemini 1.5, OpenAI, and Local Contextual Engine) with structured JSON output.
+- [x] **T3.2 (Codex):** Generate multi-scene scripts with character dialogue (Khmer, English, Chinese), locations, and camera directions.
+- [x] **T3.3 (Antigravity):** Interactive Script & Screenplay Viewer (`StoryScriptViewer.tsx`) with per-scene editing, camera shot adjuster, and multilingual dialogue tabs.
+- [x] **T3.4 (Codex):** Persist story scripts into SQLite database table `story_scripts` with append-only version increments (v1 -> v2).
+- [x] **T3.5 (Shared):** 4 new automated unit tests in `test_story_engine.py` (35/35 tests passing).
 
-### Phase 4 — AI Video & Animation Generation (PLANNED ⚪)
+### Phase 4 — AI Video & Animation Generation (IN PROGRESS 🟡)
 - [ ] **T4.1 (Codex):** AI Image/Video provider adapters with scene-level generation.
 - [ ] **T4.2 (Codex):** Character consistency reference injection.
 - [ ] **T4.3 (Antigravity):** Scene storyboard viewer with per-scene regeneration controls.

@@ -72,3 +72,4 @@ When migrating to PostgreSQL + Prisma, the schema expands to include:
 - `LanguageVersions` (Independent Khmer, English, Chinese tracks)
 - `Transcripts` & `TranscriptSegments` (STT output with timestamps)
 - `TimelineEdits` (Non-destructive multi-track edit history)
+

@@ -57,3 +57,4 @@ The AI Cartoon Studio development team consists of three specialized AI agents c
 4. **Strict Definition of Done:** A task is only complete when implementation exists, dependencies are verified, automated tests pass, errors are handled, and documentation is updated.
 5. **Clear Handoff Protocol:** Before completing a milestone, Antigravity/Codex prepares a comprehensive report in `HANDOFF_TO_CHATGPT.md` for ChatGPT's architectural evaluation.
 6. **Security & Privacy:** No API keys or secrets in Git or frontend code. Outbound URLs and file uploads must be strictly validated.
+

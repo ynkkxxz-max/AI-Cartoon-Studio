@@ -2,8 +2,8 @@
 
 ## AI Cartoon Studio Milestone Report
 
-**Current Phase:** Phase 1 (Foundation) & Phase 2 (Real Video Editing) Verified; Initializing Phase 3 (AI Story Engine)  
-**Goal:** Establish modular backend architecture, persistent Project CRUD, real FFmpeg video editing, automated testing, and synchronization between ChatGPT, Codex, and Antigravity.  
+**Current Phase:** Phase 1 (Foundation), Phase 2 (Real Video Editing), and Phase 3 (AI Story Engine) COMPLETED & VERIFIED ✅; Transitioning to Phase 4 (Video Composition & Asset Generation)  
+**Goal:** Implement LLM Provider Architecture (Gemini/OpenAI/Offline Contextual), multi-scene screenplay breakdown, synchronized Khmer/English/Chinese dialogue, granular scene editing with version tracking, and full interactive UI integration.  
 **Implementation Status:** Tested — Working ✅  
 **Git Branch:** `master`  
 **Commit Hash:** `123497cc9505213ddf06676be22d50efffd29a47`  
@@ -77,6 +77,9 @@
 - `POST /api/characters` — Adds custom character profile.
 - `DELETE /api/characters/{id}` — Soft-deletes a character profile.
 - `POST /api/characters/{id}/restore` — Restores soft-deleted character.
+- `POST /api/stories/generate` — Generates multi-scene 3D animation screenplay with synchronized Khmer, English, and Chinese dialogue, camera shots, and visual prompts.
+- `GET /api/stories/{project_id}` — Retrieves active screenplay for a project.
+- `PUT /api/stories/{project_id}/scenes/{scene_number}` — Granular scene editing with automatic version bump (v1 -> v2) in SQLite `story_scripts`.
 - `GET /api/voices` — Returns available neural voice options.
 - `POST /api/voices/preview` — Generates live neural audio stream via Edge-TTS.
 - `POST /api/editor/upload` — Ingests video file (MP4, MOV, AVI) and extracts probe metadata.
@@ -148,3 +151,4 @@
 
 ### Next Milestone
 **Phase 3 — AI Story Engine:** Implement the real LLM provider adapter (Gemini/OpenAI), define structured JSON scene schema, and connect the frontend Script Editor to generate, display, and edit story drafts.
+

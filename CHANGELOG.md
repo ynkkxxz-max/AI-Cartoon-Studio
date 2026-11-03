@@ -25,3 +25,4 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Phase 1 Foundation:** Initialized Git repository, Node.js 20.18.0 LTS, Python 3.13 FastAPI backend, SQLite database with WAL mode.
 - **Futuristic Minimal Dark Mode UI:** High-contrast Kantumruy Pro Khmer typography, hero banner, character gallery, video preview player, Edge-TTS audio auditions, and production pipeline stepper.
+

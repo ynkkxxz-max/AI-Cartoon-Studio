@@ -65,3 +65,53 @@ class MergeVideosRequest(BaseModel):
 
 class SilenceCutRequest(BaseModel):
     video_id: str
+
+# Phase 3: AI Story Engine Models
+class SceneDialogue(BaseModel):
+    km: str = ""
+    en: str = ""
+    zh: str = ""
+
+class StoryScene(BaseModel):
+    scene_number: int
+    title: str
+    location: str
+    camera_shot: str = "Medium Shot, Eye Level, Cinematic Lighting"
+    visual_prompt: str
+    duration_sec: int = 15
+    characters: List[str] = []
+    dialogue: SceneDialogue
+
+class StoryGenerateRequest(BaseModel):
+    project_id: Optional[str] = None
+    prompt: str
+    genre: Optional[str] = "Fantasy Adventure"
+    target_duration: Optional[str] = "5-20 minutes"
+    characters: Optional[List[str]] = None
+    languages: Optional[List[str]] = ["km", "en", "zh"]
+    style: Optional[str] = "3D Cartoon (Pixar-like)"
+    provider: Optional[str] = "auto" # "auto", "gemini", "openai", "offline"
+
+class StoryScriptResponse(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    synopsis: str
+    genre: str
+    style: str
+    scene_count: int
+    estimated_duration_sec: int
+    scenes: List[StoryScene]
+    provider_used: str
+    version: int = 1
+    created_at: str
+    updated_at: str
+
+class SceneUpdateRequest(BaseModel):
+    location: Optional[str] = None
+    camera_shot: Optional[str] = None
+    visual_prompt: Optional[str] = None
+    duration_sec: Optional[int] = None
+    characters: Optional[List[str]] = None
+    dialogue: Optional[Dict[str, str]] = None
+

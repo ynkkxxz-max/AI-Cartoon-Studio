@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from backend.app.core.database import init_db
 from backend.app.core.config import STORAGE_DIR
-from backend.app.api import system_status, projects, characters, voices, video_editor, editing
+from backend.app.api import system_status, projects, characters, voices, video_editor, editing, stories
 
 # Initialize SQLite database schema
 init_db()
@@ -30,6 +30,7 @@ app.include_router(characters.router, prefix="/api")
 app.include_router(voices.router, prefix="/api")
 app.include_router(video_editor.router, prefix="/api")
 app.include_router(editing.router, prefix="/api")
+app.include_router(stories.router, prefix="/api")
 
 @app.get("/")
 def read_root():

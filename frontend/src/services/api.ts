@@ -66,6 +66,37 @@ export interface SilenceAnalysis {
   silence_count: number;
 }
 
+export interface StoryScene {
+  scene_number: number;
+  title: string;
+  location: string;
+  camera_shot: string;
+  visual_prompt: string;
+  duration_sec: number;
+  characters: string[];
+  dialogue: {
+    km: string;
+    en: string;
+    zh: string;
+  };
+}
+
+export interface StoryScript {
+  id: string;
+  project_id: string;
+  title: string;
+  synopsis: string;
+  genre: string;
+  style: string;
+  scene_count: number;
+  estimated_duration_sec: number;
+  scenes: StoryScene[];
+  provider_used: string;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
 const API_BASE = '/api';
 
 export const api = {
@@ -201,6 +232,43 @@ export const api = {
       body: JSON.stringify(params),
     });
     if (!res.ok) throw new Error('Failed to process video');
+    return res.json();
+  },
+
+  async generateStory(data: {
+    prompt: string;
+    genre?: string;
+    target_duration?: string;
+    characters?: string[];
+    languages?: string[];
+    style?: string;
+    project_id?: string;
+  }): Promise<StoryScript> {
+    const res = await fetch(`${API_BASE}/stories/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to generate story' }));
+      throw new Error(err.detail || 'Failed to generate story');
+    }
+    return res.json();
+  },
+
+  async getStoryScript(projectId: string): Promise<StoryScript> {
+    const res = await fetch(`${API_BASE}/stories/${encodeURIComponent(projectId)}`);
+    if (!res.ok) throw new Error('Failed to fetch story script');
+    return res.json();
+  },
+
+  async updateScene(projectId: string, sceneNumber: number, update: Partial<StoryScene>): Promise<StoryScript> {
+    const res = await fetch(`${API_BASE}/stories/${encodeURIComponent(projectId)}/scenes/${sceneNumber}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    });
+    if (!res.ok) throw new Error('Failed to update scene');
     return res.json();
   }
 };
