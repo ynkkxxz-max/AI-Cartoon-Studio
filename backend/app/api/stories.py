@@ -245,3 +245,20 @@ def update_scene(project_id: str, scene_number: int, update: SceneUpdateRequest)
         updated_at=now
     )
 
+
+@router.post("/{project_id}/render")
+def render_story_video(project_id: str, language: str = "km"):
+    """
+    Renders all story scenes into a full master cartoon MP4 video with Edge-TTS
+    dialogue, subtitles, and FFmpeg concatenation.
+    """
+    from backend.app.services.cartoon_render_service import generate_cartoon_video
+    try:
+        result = generate_cartoon_video(project_id=project_id, language=language)
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rendering failed: {str(e)}")
+
+

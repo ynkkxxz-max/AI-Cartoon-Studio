@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, AudioLines, Box, Check, ChevronRight, Film, Folder, HardDrive, Languages, Layers, LayoutDashboard, LoaderCircle, Plus, Search, Settings, Sparkles, Upload, Video, X } from 'lucide-react';
+import { ArrowRight, AudioLines, Box, Check, ChevronRight, Download, Film, Folder, HardDrive, Languages, Layers, LayoutDashboard, LoaderCircle, Plus, Search, Settings, Sparkles, Upload, Video, X } from 'lucide-react';
 import { CreateVideoCard } from './components/CreateVideoCard';
 import { CharacterSection } from './components/CharacterSection';
 import { VoiceEnginePanel } from './components/VoiceEnginePanel';
@@ -42,6 +42,13 @@ export default function App() {
   const [restoreError, setRestoreError] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [libraryTab, setLibraryTab] = useState<'characters' | 'voices' | 'videos'>('characters');
+
+  // Video Generation & Playback State (Phase 4)
+  const [activeStoryProject, setActiveStoryProject] = useState<any | null>(null);
+  const [renderedVideo, setRenderedVideo] = useState<{ url: string; lang: string; title: string; duration: number } | null>(null);
+  const [isRenderingVideo, setIsRenderingVideo] = useState<boolean>(false);
+  const [renderError, setRenderError] = useState<string>('');
+
   const main = useRef<HTMLElement>(null);
   const current = views.find(item => item.id === view);
   const filtered = projects.filter(project => project.name.toLowerCase().includes(query.toLowerCase()));
@@ -71,6 +78,30 @@ export default function App() {
     try { const result = await api.previewVoice(character.default_voice || 'km-KH-PisethNeural', 'សួស្តី! សូមស្វាគមន៍មកកាន់ស្ទូឌីយោរបស់យើង។'); await new Audio(result.audio_url).play(); }
     catch { setLoadError('មិនអាចចាក់សំឡេងបាន។ សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយសាកម្ដងទៀត។'); }
   };
+
+  const handleRenderCartoon = async (lang: string) => {
+    const targetProj = activeStoryProject || (projects.length > 0 ? projects[0] : null);
+    if (!targetProj?.id) {
+      alert('សូមបង្កើតសាច់រឿងជាមុនសិន! (Please create a story first)');
+      return;
+    }
+    setIsRenderingVideo(true);
+    setRenderError('');
+    try {
+      const res = await api.renderCartoonVideo(targetProj.id, lang);
+      setRenderedVideo({
+        url: res.video_url,
+        lang: res.language,
+        title: res.title,
+        duration: res.duration
+      });
+    } catch (err: any) {
+      setRenderError(err.message || 'Rendering failed');
+    } finally {
+      setIsRenderingVideo(false);
+    }
+  };
+
   const projectRows = (items: Project[]) => <div className="project-list">{items.length ? items.map(project => <button key={project.id} className="project-row" onClick={() => { if (view !== 'projects') { setView('projects'); window.location.hash = 'projects'; } setSelectedProject(project); }}>
     <span className={`project-icon ${project.project_type === 'video_editor' ? 'teal' : ''}`}>{project.project_type === 'video_editor' ? <Film size={19} /> : <Sparkles size={19} />}</span>
     <span className="project-name"><strong>{project.name}</strong><small>{project.project_type === 'video_editor' ? 'Video edit' : 'Story draft'} <span>·</span> {(project.languages || []).map(language => ({ km: 'KH', en: 'EN', zh: '中文' }[language] || language)).join(' / ')}</small></span><span className="status-tag">{project.status === 'completed' ? 'Completed' : project.project_type !== 'video_editor' ? 'Draft' : project.status}</span><ChevronRight size={15} />
@@ -119,7 +150,90 @@ export default function App() {
           <div className="workflow-grid"><button className="workflow-card" onClick={() => navigate('create')}><span className="workflow-icon"><Sparkles size={23} /></span><h3>បង្កើតតុក្កតា <small>Generate Cartoon</small></h3><p>ចាប់ផ្ដើមពីគំនិត រៀបចំតួអង្គ និងភាសារបស់រឿង។</p><span className="workflow-meta">Story · Characters · Languages</span><ArrowRight size={19} /></button><button className="workflow-card editor-workflow" onClick={() => navigate('editor')}><span className="workflow-icon"><Film size={23} /></span><h3>បញ្ចូល និងកាត់ត <small>Upload & Edit</small></h3><p>កាត់ ភ្ជាប់ clips ពិនិត្យចន្លោះស្ងាត់ និងនាំចេញ MP4។</p><span className="workflow-meta">Upload · Refine · Export</span><ArrowRight size={19} /></button></div>
           <div className="section-heading with-action"><div><h2>គម្រោងថ្មីៗ</h2><p>Pick up where your last idea began.</p></div><button className="studio-text-link" onClick={() => navigate('projects')}>មើលទាំងអស់ <ArrowRight size={13} /></button></div>{loading ? <div className="loading-state"><LoaderCircle className="animate-spin" size={18} /> កំពុងទាញយកគម្រោង…</div> : projectRows(projects.slice(0, 3))}
         </>}
-        {(view === 'create' || visited.create) && <div style={{ display: view === 'create' ? undefined : 'none' }}><div className="page-heading"><span className="eyebrow">WORKFLOW 01 · YOUR NEXT STORY</span><h1>បង្កើតតុក្កតា <small>Generate Cartoon</small></h1><p>ចាប់ផ្ដើមពីគំនិតតូចមួយ ហើយរៀបចំរឿងរបស់អ្នកតាមលំដាប់។</p></div><div className="create-workspace"><CreateVideoCard selectedCharacters={selectedCharacters} onSwitchToEditor={() => navigate('editor')} onProjectCreated={() => { void refresh(); }} /><aside className="story-guide studio-card"><div className="section-heading"><h2>ពិភពរឿងរបស់អ្នក</h2><p>Story development workspace</p></div><div className="story-concept-art"><span className="concept-moon" /><Sparkles size={55} strokeWidth={1} /><span>YOUR NEXT GREAT STORY</span></div><h3 className="guide-label">LANGUAGE EXPORT PLAN</h3>{[{ code: 'KH', name: 'ខ្មែរ', sub: 'Khmer version' }, { code: 'EN', name: 'English', sub: 'English version' }, { code: '中文', name: '中文', sub: 'Chinese version' }].map(language => <div className="language-plan" key={language.code}><span>{language.code}</span><div><strong>{language.name}</strong><small>{language.sub}</small></div><em>Separate video</em></div>)}<p className="capability-note">រក្សាទុកសេចក្ដីព្រាងបានឥឡូវនេះ។ ការបង្កើតវីដេអូ AI ពេញលេញកំពុងរៀបចំ។</p></aside></div><details className="creative-details"><summary><Box size={16} /> តួអង្គសម្រាប់រឿងនេះ <span>{selectedCharacters.length} selected</span></summary>{characterPanel}</details></div>}
+        {(view === 'create' || visited.create) && <div style={{ display: view === 'create' ? undefined : 'none' }}>
+          <div className="page-heading"><span className="eyebrow">WORKFLOW 01 · YOUR NEXT STORY</span><h1>បង្កើតតុក្កតា <small>Generate Cartoon</small></h1><p>ចាប់ផ្ដើមពីគំនិតតូចមួយ ហើយរៀបចំរឿងរបស់អ្នកតាមលំដាប់។</p></div>
+          <div className="create-workspace">
+            <CreateVideoCard
+              selectedCharacters={selectedCharacters}
+              onSwitchToEditor={() => navigate('editor')}
+              onProjectCreated={(proj) => {
+                setActiveStoryProject(proj);
+                void refresh();
+              }}
+            />
+            <aside className="story-guide studio-card space-y-3">
+              <div className="section-heading">
+                <h2>ពិភពរឿង និងវីដេអូរបស់អ្នក</h2>
+                <p>Cartoon Video Player & Export Hub</p>
+              </div>
+
+              {renderedVideo ? (
+                <div className="space-y-2.5">
+                  <video
+                    src={renderedVideo.url}
+                    controls
+                    autoPlay
+                    className="w-full rounded-lg border border-purple-500/50 bg-black shadow-lg"
+                  />
+                  <div className="flex items-center justify-between text-[11px] text-slate-200">
+                    <span className="font-bold text-emerald-400">
+                      ● វីដេអូរួចរាល់ ({renderedVideo.lang.toUpperCase()} • {renderedVideo.duration}s)
+                    </span>
+                    <a
+                      href={renderedVideo.url}
+                      download
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition"
+                    >
+                      <Download size={13} />
+                      <span>ទាញយក MP4</span>
+                    </a>
+                  </div>
+                </div>
+              ) : isRenderingVideo ? (
+                <div className="p-6 rounded-xl border border-purple-500/40 bg-purple-950/30 text-center space-y-2">
+                  <LoaderCircle className="animate-spin mx-auto text-purple-400" size={32} />
+                  <p className="text-xs font-bold text-white">កំពុងផលិតវីដេអូតុក្កតា និងសំឡេង AI...</p>
+                  <p className="text-[10px] text-purple-300">Rendering 3D scene visuals, Edge-TTS audio & FFmpeg MP4</p>
+                </div>
+              ) : (
+                <div className="story-concept-art">
+                  <span className="concept-moon" />
+                  <Sparkles size={55} strokeWidth={1} />
+                  <span>YOUR NEXT GREAT STORY</span>
+                </div>
+              )}
+
+              {renderError && (
+                <p className="p-2 rounded bg-rose-500/10 text-rose-300 text-[10px] border border-rose-500/20">{renderError}</p>
+              )}
+
+              <h3 className="guide-label">ផលិតវីដេអូតាមភាសា / RENDER VIDEO VERSIONS</h3>
+              <div className="space-y-2">
+                {[
+                  { code: 'km', name: 'ខ្មែរ', sub: 'Khmer version (Piseth Voice)', btn: '🎬 ផលិតជាភាសាខ្មែរ (Khmer MP4)' },
+                  { code: 'en', name: 'English', sub: 'English version (Christopher Voice)', btn: '🎬 Render English (MP4)' },
+                  { code: 'zh', name: '中文', sub: 'Chinese version (Xiaoxiao Voice)', btn: '🎬 渲染中文版 (Chinese MP4)' }
+                ].map(language => (
+                  <div className="p-2.5 rounded-lg border border-[#2b2e55] bg-[#0f1128] flex items-center justify-between gap-2" key={language.code}>
+                    <div className="min-w-0">
+                      <strong className="block text-xs text-white">{language.name}</strong>
+                      <small className="block text-[10px] text-slate-400 truncate">{language.sub}</small>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isRenderingVideo}
+                      onClick={() => void handleRenderCartoon(language.code)}
+                      className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 disabled:opacity-50 text-white font-bold text-[10px] transition shrink-0 shadow-sm"
+                    >
+                      {language.btn}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </aside>
+          </div>
+          <details className="creative-details"><summary><Box size={16} /> តួអង្គសម្រាប់រឿងនេះ <span>{selectedCharacters.length} selected</span></summary>{characterPanel}</details>
+        </div>}
         {(view === 'editor' || visited.editor) && <div style={{ display: view === 'editor' ? undefined : 'none' }}><div className="page-heading"><span className="eyebrow">WORKFLOW 02 · YOUR OWN FOOTAGE</span><h1>បញ្ចូល និងកាត់ត <small>Upload & Edit</small></h1><p>ឧបករណ៍កាត់តជាក់ស្ដែង សម្រាប់វីដេអូរបស់អ្នក។</p></div><div className="embedded-editor"><ClipTimelineEditor /></div></div>}
         {view === 'projects' && <><div className="page-heading"><span className="eyebrow">ORGANIZE YOUR IDEAS</span><h1>គម្រោងរបស់ខ្ញុំ <small>My Projects</small></h1><p>គ្រប់គំនិតរបស់អ្នក រក្សាទុកនៅកន្លែងតែមួយ។</p></div><div className="section-heading with-action"><div><h2>គម្រោងទាំងអស់ <span className="count-label">{filtered.length}</span></h2><p>{query ? `Search: ${query}` : 'Your saved stories and video projects.'}</p></div><button className="studio-button" onClick={() => navigate('create')}><Plus size={15} /> គម្រោងថ្មី</button></div>{projectRows(filtered)}{selectedProject && <section className="project-detail studio-card"><div className="section-heading with-action"><h2>{selectedProject.name}</h2><button className="icon-button" aria-label="Close project details" onClick={() => setSelectedProject(null)}><X size={17} /></button></div><p>{selectedProject.story_prompt || 'Video editing project'}</p><div className="detail-metadata"><span>Style <strong>{selectedProject.style}</strong></span><span>Target length <strong>{selectedProject.duration_preset}</strong></span><span>Saved <strong>{new Date(selectedProject.updated_at).toLocaleDateString('en-GB')}</strong></span></div><span className="capability-note">Saved draft · {selectedProject.status}</span></section>}</>}
         {view === 'library' && <><div className="page-heading"><span className="eyebrow">YOUR CREATIVE LIBRARY</span><h1>បណ្ណាល័យ <small>Asset Library</small></h1><p>រក្សាតួអង្គ សំឡេង និងវីដេអូរបស់អ្នកឱ្យមានរបៀប។</p></div><div className="library-tabs" role="tablist" aria-label="Asset category">{([{ id: 'characters', icon: Box, text: 'តួអង្គ / Characters', count: characters.length }, { id: 'voices', icon: AudioLines, text: 'សំឡេង / Voices', count: voices?.human?.length || 0 }, { id: 'videos', icon: Video, text: 'វីដេអូ / Videos', count: uploads.length }] as const).map(({ id, icon: Icon, text, count }) => <button key={id} role="tab" aria-selected={libraryTab === id} onClick={() => setLibraryTab(id)}><Icon size={16} />{text}<span>{count}</span></button>)}</div>{libraryTab === 'characters' && <div className="library-characters">{characterPanel}</div>}{libraryTab === 'voices' && <div className="library-voices"><VoiceEnginePanel catalog={voices} /></div>}{libraryTab === 'videos' && <div className="project-list">{uploads.length ? uploads.map(video => <a key={video.video_id} className="project-row" href={`/api/editor/stream/${encodeURIComponent(video.filename)}`} target="_blank" rel="noreferrer"><span className="project-icon teal"><Video size={20} /></span><span className="project-name"><strong>{video.filename}</strong><small>Uploaded footage · Original file</small></span><ArrowRight size={17} /></a>) : <div className="empty-state"><Upload size={27} /><strong>មិនទាន់មានវីដេអូ</strong><button className="studio-button" onClick={() => navigate('editor')}>បញ្ចូលវីដេអូ</button></div>}</div>}</>}

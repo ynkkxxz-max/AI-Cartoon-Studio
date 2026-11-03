@@ -270,5 +270,24 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to update scene');
     return res.json();
+  },
+
+  async renderCartoonVideo(projectId: string, language = 'km'): Promise<{
+    success: boolean;
+    filename: string;
+    video_url: string;
+    duration: number;
+    title: string;
+    scene_count: number;
+    language: string;
+  }> {
+    const res = await fetch(`${API_BASE}/stories/${encodeURIComponent(projectId)}/render?language=${encodeURIComponent(language)}`, {
+      method: 'POST',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Rendering failed' }));
+      throw new Error(err.detail || 'Rendering failed');
+    }
+    return res.json();
   }
 };
