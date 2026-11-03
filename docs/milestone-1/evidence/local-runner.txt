@@ -1,0 +1,4 @@
+3 November 2026, Windows local smoke verification.
+PASS: dev:local runner, real PostgreSQL readiness, create, full runner/database restart, reopen and archive.
+The runner and its PostgreSQL process were stopped after verification.
+Generated credentials/data are ignored by Git and are not included in this evidence.

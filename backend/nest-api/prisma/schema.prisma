@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                  String    @id @default(uuid()) @db.Uuid
+  ownerId             String    @map("owner_id") @db.Uuid
+  name                String    @db.VarChar(200)
+  projectType         String    @default("cartoon") @map("project_type") @db.VarChar(30)
+  storyPrompt         String    @default("") @map("story_prompt")
+  durationPreset      String    @default("5-20 minutes") @map("duration_preset") @db.VarChar(80)
+  resolution          String    @default("1080p") @db.VarChar(10)
+  style               String    @default("3D Cartoon") @db.VarChar(200)
+  languages           String[]  @default(["km", "en", "zh-CN"])
+  selectedCharacters  String[]  @default([]) @map("selected_characters")
+  metadata            Json      @default("{}")
+  version             Int       @default(1)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt          DateTime? @map("archived_at") @db.Timestamptz(3)
+
+  @@index([ownerId, archivedAt, updatedAt, id])
+  @@map("projects")
+}

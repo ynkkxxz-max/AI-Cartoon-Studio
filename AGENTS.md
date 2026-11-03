@@ -53,8 +53,16 @@ The AI Cartoon Studio development team consists of three specialized AI agents c
 
 1. **Backend First:** Allocate 80% engineering focus to backend, persistence, media processing, and automated testing; 20% to frontend wiring and UI refinement.
 2. **Zero Fakes / Zero Simulations:** No non-functional buttons, fake progress bars, or simulated AI responses. All features must be genuinely backed by real code.
-3. **Single Source of Truth:** Git repository on branch `master` (or isolated worktrees/branches for parallel work). Uncommitted changes must never be overwritten.
+3. **Single Source of Truth:** GitHub repository `ynkkxxz-max/AI-Cartoon-Studio`, with `main` as the shared base and isolated branches/worktrees for parallel work. Uncommitted changes must never be overwritten.
 4. **Strict Definition of Done:** A task is only complete when implementation exists, dependencies are verified, automated tests pass, errors are handled, and documentation is updated.
 5. **Clear Handoff Protocol:** Before completing a milestone, Antigravity/Codex prepares a comprehensive report in `HANDOFF_TO_CHATGPT.md` for ChatGPT's architectural evaluation.
 6. **Security & Privacy:** No API keys or secrets in Git or frontend code. Outbound URLs and file uploads must be strictly validated.
+
+## 3. Publication and milestone review
+
+- Use Pull Requests for review, run automated checks before merging, and require owner approval for major changes and paid services. Never merge automatically.
+- The existing FastAPI/SQLite app remains active. `backend/nest-api` is the additive NestJS/PostgreSQL foundation; its scoped contract and evidence are in `docs/milestone-1/`. Do not silently redirect legacy UI routes or migrate owner data.
+- Codex owns the new backend and backend tests; Antigravity owns frontend integration and browser acceptance. Each implementation task must have one owner.
+- Owner acceptance of the first collaborative milestone is required after backend tests, browser persistence verification and ChatGPT review. Older phase reports do not establish acceptance of the separate backend foundation. Do not begin its next milestone until acceptance is recorded.
+- Agents do not communicate automatically unless a real approved integration exists. Keep handoff status and test claims accurate.
 

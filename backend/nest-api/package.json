@@ -1,0 +1,40 @@
+{
+  "name": "@ai-cartoon-studio/api",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20.18" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file=.env dist/main.js",
+    "start:env": "node dist/main.js",
+    "dev:local": "npm run build && node scripts/dev-local.cjs",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "test": "npm run build && node --test test/unit.test.cjs",
+    "test:integration": "npm run build && node --test --test-concurrency=1 test/integration.test.cjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.2.8",
+    "@nestjs/core": "11.2.8",
+    "@nestjs/platform-express": "11.2.8",
+    "@nestjs/throttler": "^6.4.0",
+    "@prisma/client": "^6.19.0",
+    "helmet": "^8.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.0.0",
+    "embedded-postgres": "17.10.0-beta.17",
+    "pg": "^8.16.3",
+    "prisma": "^6.19.0",
+    "supertest": "^7.1.4",
+    "typescript": "~5.9.3"
+  },
+  "overrides": {
+    "@nestjs/platform-express": { "multer": "^2.5.0" },
+    "@prisma/config": { "deepmerge-ts": "^8.0.0" }
+  }
+}

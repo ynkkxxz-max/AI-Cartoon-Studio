@@ -53,3 +53,21 @@ storage/generated/*
 *.swo
 .DS_Store
 Thumbs.db
+
+# Backend foundation and local data (source only in GitHub)
+!.env.example
+**/.local-db/
+**/.test-db/
+**/coverage/
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.pem
+*.key
+*.p12
+*.pfx
+storage/**
+!storage/.gitkeep
