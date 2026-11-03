@@ -42,9 +42,14 @@ def init_db():
         avatar_url TEXT,
         default_voice TEXT,
         description TEXT,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        deleted_at TEXT
     )
     """)
+
+    # Archive library entries without changing historical project references.
+    if "deleted_at" not in {row["name"] for row in cursor.execute("PRAGMA table_info(characters)").fetchall()}:
+        cursor.execute("ALTER TABLE characters ADD COLUMN deleted_at TEXT")
 
     # Jobs / Tasks table
     cursor.execute("""

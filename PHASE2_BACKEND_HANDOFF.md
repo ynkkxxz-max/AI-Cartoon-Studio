@@ -1,6 +1,20 @@
 # Phase 2 backend handoff — 2 November 2026
 
-## Current result
+## Integration completed in this continuation
+
+The real editor is now available at **http://127.0.0.1:5173/clip-editor.html**, linked from the dashboard sidebar's AI Video Editor entry. The dashboard and original Antigravity editor remain intact. The separate page avoids concurrent saves to App.tsx. Frontend: ClipTimelineEditor.tsx, editingApi.ts, clipEditorMain.tsx and clip-editor.html; Vite includes both HTML entrypoints.
+
+The canonical integrated API namespace is **/api/editor/timeline/**. Existing Antigravity /editor/trim and /editor/merge use different request models and remain separate. Additional routes: GET uploads (up to 100 saved filenames), GET media/{video_id} (verified stream metadata), POST convert ({video_id,aspect_ratio},1080p only). The editor offers upload/reopen, range preview and export, reviewed silence spans, ordered multi-clip export with 0.25s crossfades, real preview/download and continued editing of exports. Processing uses an indeterminate busy state.
+
+Fourteen integration/regression tests pass, including both routers in production order, unique routes, corrupt media, Khmer/punctuation filenames, conversion chaining, output download/range, saved uploads, and legacy single-span silence removal. TypeScript passes. Both HTML pages built successfully using the installed Vite/React/Tailwind plugins with explicit programmatic configuration and preserveSymlinks for this sandbox; the ordinary npm build command still encounters an ancestor-directory access restriction while loading vite.config.ts.
+
+Browser verification succeeded: saved 4s test source -> 3 quiet spans/2 keep spans -> 2s playable MP4 -> actual browser download -> reused export trimmed to .8s -> playable 1080x1920 conversion; a no-audio portrait source was preserved, reordered with two audio clips and exported with fades to a playable 5.5s MP4. Browser filechooser automation itself remains blocked by Chrome extension file-URL permission; uploads were tested through real multipart HTTP, then reopened through the real saved-upload UI. No extension permissions were changed.
+
+Small compatibility fixes: FFmpeg metadata logs decode as UTF-8 for Khmer filenames; legacy merge_videos now copies a single input to an explicitly requested output path, so silence-removal cleanup cannot delete its only result. Unused legacy frontend imports/state bindings were removed to keep TypeScript compilation passing.
+
+Remaining: subtitle/music/highlight AI, provider-driven cartoon generation, background job progress, timeline persistence/drag-and-drop and broader user-footage quality testing. The historical notes below predate this integration and are retained as context.
+
+## Original backend handoff
 
 Codex has continued the backend milestone requested in Antigravity's 1 November handoff. Local silence analysis, precise clip trimming and multi-clip merging now work through the canonical `backend.app.main:app`. Eight new tests pass using real encoded/decoded MP4 fixtures. The eight existing `codex_app` foundation tests also pass; that is a separate backend implementation, not the application served on port 8000.
 
@@ -10,7 +24,7 @@ Run the canonical backend from the project root with `python backend/run_server.
 
 All endpoints return synchronously. Show an indeterminate busy state while the request runs; numerical job progress and ETA are not implemented. Source files remain unchanged. A successful trim or merge produces a new H.264/AAC MP4 and returns actual duration, dimensions, audio availability, `video_id`, `stream_url` and `export_url`. Source IDs can refer to uploads or earlier exports, using the exact filename stem without its extension.
 
-### `POST /api/editor/silence`
+### `POST /api/editor/timeline/silence`
 
 ```json
 {"video_id":"uploaded_filename_stem","noise_db":-30,"min_silence":0.5}
@@ -18,7 +32,7 @@ All endpoints return synchronously. Show an indeterminate busy state while the r
 
 Returns `silence_segments` and `keep_segments`, each containing `start_time` and `end_time` in seconds. This detects quiet audio amplitude, not words, speaking, or mistakes. No-audio videos return `has_audio:false`, `analysis:"no_audio_stream"` and one full-duration keep segment. Fully silent audio returns an empty keep list. Always let the user review cut points.
 
-### `POST /api/editor/trim`
+### `POST /api/editor/timeline/trim`
 
 ```json
 {"video_id":"uploaded_filename_stem","start_time":1.25,"end_time":4.5}
@@ -26,7 +40,7 @@ Returns `silence_segments` and `keep_segments`, each containing `start_time` and
 
 The range must lie within the actual source duration and be at least 0.1 seconds long. Videos without audio are supported.
 
-### `POST /api/editor/merge`
+### `POST /api/editor/timeline/merge`
 
 ```json
 {

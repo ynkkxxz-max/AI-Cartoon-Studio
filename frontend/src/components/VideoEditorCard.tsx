@@ -32,7 +32,7 @@ export const VideoEditorCard: React.FC = () => {
   const [silenceData, setSilenceData] = useState<SilenceAnalysis | null>(null);
   const [isDetectingSilence, setIsDetectingSilence] = useState<boolean>(false);
   const [isTrimming, setIsTrimming] = useState<boolean>(false);
-  const [clipsQueue, setClipsQueue] = useState<Array<{ id: string; name: string; duration: number }>>([]);
+  const [, setClipsQueue] = useState<Array<{ id: string; name: string; duration: number }>>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -485,19 +485,6 @@ export const VideoEditorCard: React.FC = () => {
               <span>{isTrimming ? 'កំពុងកាត់...' : 'កាត់តយកផ្នែកនេះ Apply Trim'}</span>
             </button>
           </div>
-
-          {/* Clips Track List */}
-          {clipsQueue.length > 0 && (
-            <div className="pt-2 border-t border-[#1e2246] flex items-center gap-2 overflow-x-auto text-[10px]">
-              <span className="text-slate-400 font-semibold shrink-0">Clips Track:</span>
-              {clipsQueue.map((clip, i) => (
-                <div key={`${clip.id}-${i}`} className="bg-purple-900/40 border border-purple-500/30 rounded px-2 py-0.5 text-purple-200 shrink-0 flex items-center gap-1">
-                  <span>Clip #{i + 1}</span>
-                  <span className="text-slate-400 font-mono">({clip.duration.toFixed(1)}s)</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

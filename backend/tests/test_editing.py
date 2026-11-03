@@ -22,6 +22,8 @@ class EditingTests(unittest.TestCase):
         cls.exports = cls.root / "exports"
         cls.uploads.mkdir()
         cls.exports.mkdir()
+        cls.generated = cls.root / 'generated'
+        cls.generated.mkdir()
         cls.patch_uploads = patch.object(engine, "UPLOADS_DIR", cls.uploads)
         cls.patch_exports = patch.object(engine, "EXPORTS_DIR", cls.exports)
         cls.patch_uploads.start()
@@ -30,6 +32,8 @@ class EditingTests(unittest.TestCase):
             (video_editor, "UPLOADS_DIR", cls.uploads),
             (video_editor, "EXPORTS_DIR", cls.exports),
             (video_service, "UPLOADS_DIR", cls.uploads),
+            (video_service, "EXPORTS_DIR", cls.exports),
+            (video_service, "GENERATED_DIR", cls.generated),
         ]:
             storage_patch = patch.object(module, attr, value)
             storage_patch.start()
@@ -40,6 +44,7 @@ class EditingTests(unittest.TestCase):
         cls.fixture("tone", "160x90", audio="aevalsrc=if(between(t\\,0.5\\,1.5)+between(t\\,2.5\\,3.5)\\,0.25*sin(2*PI*440*t)\\,0):s=48000:d=4")
         cls.fixture("silent", "120x160", color="blue")
         cls.fixture("mute", "160x90", audio="anullsrc=r=48000:cl=stereo")
+        cls.fixture("continuous", "160x90", audio="sine=frequency=440:sample_rate=48000:duration=4")
         (cls.uploads / "corrupt.mp4").write_bytes(b"not video")
         app = FastAPI()
         # Production order: legacy upload/stream endpoints, then timeline endpoints.
@@ -199,6 +204,24 @@ class EditingTests(unittest.TestCase):
         self.assertEqual(uploaded.status_code, 200)  # Existing legacy upload is permissive.
         media = self.client.get('/api/editor/timeline/media/' + uploaded.json()['video_id'])
         self.assertEqual(media.status_code, 422, media.text)
+
+    def test_saved_upload_library_and_open(self):
+        library = self.client.get('/api/editor/timeline/uploads')
+        self.assertEqual(library.status_code, 200)
+        tone = next(item for item in library.json() if item['video_id'] == 'tone')
+        self.assertEqual(tone['filename'], 'tone.mp4')
+        reopened = self.client.get('/api/editor/timeline/media/' + tone['video_id'])
+        self.assertEqual(reopened.status_code, 200)
+        self.assertTrue(reopened.json()['has_audio'])
+
+    def test_legacy_single_span_silence_cut_retains_real_output(self):
+        source = self.uploads / 'continuous.mp4'
+        before = source.read_bytes()
+        output, _ = video_service.remove_silence_from_video(source)
+        self.assertTrue(output.is_file())
+        self.assertEqual(output.parent, self.exports)
+        self.assertGreater(engine.inspect_video(output)['duration'], 3.9)
+        self.assertEqual(source.read_bytes(), before)
 
     def test_conversion_preserves_orientation_and_no_audio(self):
         trimmed = self.post('trim', {'video_id': 'silent', 'start_time': 0, 'end_time': 0.2}).json()

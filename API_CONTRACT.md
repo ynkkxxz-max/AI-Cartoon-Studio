@@ -187,3 +187,6 @@ Start AI automated or custom video processing pipeline.
 }
 ```
 
+
+## Integrated clip editor — current namespace
+Use `/api/editor/timeline/silence`, `/trim`, `/merge`, `/convert`, `GET /uploads`, and `GET /media/{video_id}` beneath `/api/editor/timeline`. Legacy `/api/editor/trim` and `/api/editor/merge` belong to the separate original editor and accept different payloads. Full current payloads and validation: `PHASE2_BACKEND_HANDOFF.md`.

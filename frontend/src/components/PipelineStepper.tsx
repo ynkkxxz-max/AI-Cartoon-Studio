@@ -1,72 +1,34 @@
 import React from 'react';
-import { Check, BookOpen, Users, Layout, Film, Mic, Scissors, Download } from 'lucide-react';
+import { BookOpen, Check, Download, Film, Layout, Mic, Scissors, Users } from 'lucide-react';
 
-interface PipelineStepperProps {
-  currentStep: number;
-}
+interface PipelineStepperProps { currentStep: number }
 
 export const PipelineStepper: React.FC<PipelineStepperProps> = ({ currentStep }) => {
-  const steps = [
-    { num: 1, labelKh: 'គំនិតរឿង', labelEn: 'Story', icon: BookOpen },
-    { num: 2, labelKh: 'តួអង្គ', labelEn: 'Characters', icon: Users },
-    { num: 3, labelKh: 'រៀបចំប្លង់សាច់រឿង', labelEn: 'Scenes', icon: Layout },
-    { num: 4, labelKh: 'ការចលនា', labelEn: 'Animation', icon: Film },
-    { num: 5, labelKh: 'សំឡេង (KH/EN/CN)', labelEn: 'Voice', icon: Mic },
-    { num: 6, labelKh: 'កែសម្រួល', labelEn: 'Editing', icon: Scissors },
-    { num: 7, labelKh: 'នាំចេញ', labelEn: 'Export', icon: Download },
+  const stages = [
+    { number: 1, kh: 'គំនិតរឿង', en: 'Story', icon: BookOpen },
+    { number: 2, kh: 'តួអង្គ', en: 'Characters', icon: Users },
+    { number: 3, kh: 'ប្លង់សាច់រឿង', en: 'Scenes', icon: Layout },
+    { number: 4, kh: 'ការចលនា', en: 'Animation', icon: Film },
+    { number: 5, kh: 'សំឡេង', en: 'Voice', icon: Mic },
+    { number: 6, kh: 'កែសម្រួល', en: 'Editing', icon: Scissors },
+    { number: 7, kh: 'នាំចេញ', en: 'Export', icon: Download },
   ];
-
+  const stage = Math.min(7, Math.max(1, currentStep));
   return (
-    <div className="bg-[#111327] rounded-2xl border border-[#1f2343] p-3.5 shadow-md">
-      <div className="flex items-center justify-between mb-2 px-1">
-        <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-          <span>ដំណាក់កាលផលិត</span>
-          <span className="text-[11px] font-normal text-slate-400">(Production Pipeline)</span>
-        </h4>
-        <span className="text-xs text-purple-400 font-bold font-mono">
-          Stage {currentStep} / 7
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between relative px-5">
-        {/* Connecting horizontal line */}
-        <div className="absolute top-4 left-10 right-10 h-[2px] bg-[#1f2343] -z-0" />
-
-        {steps.map((step) => {
-          const isDone = currentStep > step.num;
-          const isActive = currentStep === step.num;
-          const Icon = step.icon;
-
-          return (
-            <div key={step.num} className="relative z-10 flex flex-col items-center group">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                  isDone
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40 ring-2 ring-emerald-500/40'
-                    : isActive
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/60 ring-2 ring-purple-400 scale-110'
-                    : 'bg-[#15172f] border border-[#23274c] text-slate-400'
-                }`}
-              >
-                {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : <Icon className="w-4 h-4" />}
-              </div>
-
-              <div className="flex flex-col items-center mt-1.5 text-center">
-                <span
-                  className={`text-[11px] font-bold leading-tight ${
-                    isActive ? 'text-purple-300' : isDone ? 'text-slate-100' : 'text-slate-400'
-                  }`}
-                >
-                  {step.labelKh}
-                </span>
-                <span className="text-[9.5px] text-slate-500 leading-tight font-medium">
-                  {step.labelEn}
-                </span>
-              </div>
-            </div>
-          );
+    <section className="studio-card min-w-0 overflow-x-auto px-3.5 py-2.5" aria-labelledby="production-pipeline-title">
+      <div className="mb-2 flex items-center justify-between gap-2"><h2 id="production-pipeline-title" className="text-[11px] font-semibold text-slate-200">ដំណាក់កាលផលិត <span className="ml-1 text-[10px] font-normal text-slate-500">Production pipeline</span></h2><span className="text-[9px] text-violet-300">Stage {stage} / 7</span></div>
+      <ol className="relative grid min-w-[420px] grid-cols-7 gap-1" aria-label="Production stages">
+        {stages.map(({ number, kh, en, icon: Icon }) => {
+          const complete = number < stage;
+          const active = number === stage;
+          return <li key={number} aria-current={active ? 'step' : undefined} className="relative flex flex-col items-center gap-1">
+            {number < 7 && <span aria-hidden="true" className={`absolute left-[calc(50%+18px)] right-[calc(-50%+18px)] top-3 h-px ${complete ? 'bg-emerald-500/30' : 'bg-[#2b2d46]'}`} />}
+            <span className={`relative flex h-6 w-6 items-center justify-center rounded-full border ${complete ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300' : active ? 'border-violet-400/70 bg-violet-500/20 text-violet-200 ring-2 ring-violet-500/10' : 'border-[#30324d] bg-[#181a2c] text-slate-600'}`}>{complete ? <Check className="h-3 w-3" /> : <Icon className="h-3 w-3" />}</span>
+            <span className={`text-center text-[10px] font-medium leading-[1.25] ${active ? 'text-violet-200' : complete ? 'text-slate-300' : 'text-slate-500'}`}>{kh}<span className="mt-0.5 block text-[8px] font-normal text-slate-500">{en}</span></span>
+            <span className="sr-only">{complete ? 'Completed' : active ? 'Current stage' : 'Upcoming'}</span>
+          </li>;
         })}
-      </div>
-    </div>
+      </ol>
+    </section>
   );
 };

@@ -151,6 +151,9 @@ def merge_videos(clip_paths: List[Path], output_path: Path = None) -> Path:
         raise ValueError("At least one video clip is required to merge.")
 
     if len(clip_paths) == 1:
+        if output_path is not None:
+            shutil.copy2(clip_paths[0], output_path)
+            return output_path
         return clip_paths[0]
 
     if output_path is None:

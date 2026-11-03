@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Video, Film, Clock, Monitor, Palette, Check } from 'lucide-react';
+import { Sparkles, Video, Film, Clock, Monitor, Palette, Check, LoaderCircle } from 'lucide-react';
 import { api } from '../services/api';
 
 interface CreateVideoCardProps {
@@ -8,291 +8,64 @@ interface CreateVideoCardProps {
   selectedCharacters: string[];
 }
 
-export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({
-  onProjectCreated,
-  onSwitchToEditor,
-  selectedCharacters
-}) => {
+export const CreateVideoCard: React.FC<CreateVideoCardProps> = ({ onProjectCreated, onSwitchToEditor, selectedCharacters }) => {
   const [activeTab, setActiveTab] = useState<'create' | 'editor'>('create');
-  const [prompt, setPrompt] = useState<string>('');
-  const [duration, setDuration] = useState<string>('5-20 minutes');
-  const [resolution, setResolution] = useState<string>('1080p');
-  const [style, setStyle] = useState<string>('3D Cartoon (Pixar-like)');
-  const [languages, setLanguages] = useState<{ [key: string]: boolean }>({
-    km: true,
-    en: true,
-    zh: true
-  });
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
-
-  const toggleLanguage = (code: string) => {
-    setLanguages(prev => ({
-      ...prev,
-      [code]: !prev[code]
-    }));
-  };
+  const [prompt, setPrompt] = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [duration, setDuration] = useState('5-20 minutes');
+  const [resolution, setResolution] = useState('1080p');
+  const [style, setStyle] = useState('3D Cartoon (Pixar-like)');
+  const [languages, setLanguages] = useState<Record<string, boolean>>({ km: true, en: true, zh: true });
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState('');
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      alert("សូមបញ្ចូលគំនិតរឿងរបស់អ្នក (Please enter your story prompt)!");
-      return;
-    }
-
-    const selectedLangs = Object.keys(languages).filter(k => languages[k]);
-    if (selectedLangs.length === 0) {
-      alert("សូមជ្រើសរើសយ៉ាងហោចណាស់ភាសាមួយ (Please select at least one language)!");
-      return;
-    }
-
+    setFeedback('');
+    setError('');
+    if (!prompt.trim()) { setError('សូមបញ្ចូលគំនិតរឿងរបស់អ្នក។ / Enter your story idea.'); return; }
+    const selectedLangs = Object.keys(languages).filter(key => languages[key]);
+    if (!selectedLangs.length) { setError('សូមជ្រើសរើសយ៉ាងហោចណាស់ភាសាមួយ។ / Select at least one language.'); return; }
     setIsGenerating(true);
     try {
-      const res = await api.createProject({
-        name: prompt.slice(0, 30) + '...',
-        story_prompt: prompt,
-        duration_preset: duration,
-        resolution,
-        style,
-        languages: selectedLangs,
-        selected_characters: selectedCharacters,
-        pipeline_step: 3
-      });
-      onProjectCreated(res);
-      alert(`🎉 គម្រោងបានបង្កើតដោយជោគជ័យ! ប្លង់សាច់រឿងចំនួន ${res.scenes?.length || 4} ត្រូវបានរៀបចំសម្រាប់ភាសាខ្មែរ អង់គ្លេស និងចិន។`);
-    } catch (err: any) {
-      alert(`បរាជ័យក្នុងការបង្កើតគម្រោង: ${err.message}`);
-    } finally {
-      setIsGenerating(false);
-    }
+      const result = await api.createProject({ name: projectName.trim() || prompt.slice(0, 30) + (prompt.length > 30 ? '…' : ''), story_prompt: prompt, duration_preset: duration, resolution, style, languages: selectedLangs, selected_characters: selectedCharacters, pipeline_step: 1 });
+      onProjectCreated(result);
+      setFeedback('បានរក្សាទុកសេចក្ដីព្រាងគម្រោង។ / Story draft saved.');
+    } catch (cause: unknown) { setError(cause instanceof Error ? cause.message : 'ការរក្សាទុកមិនបានសម្រេច។ / Could not save the draft.'); }
+    finally { setIsGenerating(false); }
   };
-
-  const loadExamplePrompt = () => {
-    setPrompt("ដំណើរផ្សងព្រេងរបស់ក្មេងប្រុសក្លាហាន និងសត្វស្វាមន្តអាគមនៅក្នុងព្រៃអច្ឆរិយៈ ដើម្បីស្វែងរកប្រាសាទពេជ្រអណ្តែតលើអាកាស");
-  };
+  const languageItems = [{ id: 'km', kh: 'ខ្មែរ', en: 'Khmer', flag: 'flag_kh.png' }, { id: 'en', kh: 'អង់គ្លេស', en: 'English', flag: 'flag_us.png' }, { id: 'zh', kh: 'ចិន', en: 'Chinese', flag: 'flag_cn.png' }];
+  const fieldLabel = 'mb-1.5 flex items-center gap-1.5 text-[10px] font-medium text-slate-400';
+  const selectClass = 'studio-input h-[32px] w-full min-w-0 rounded-lg border border-[#2d2d49] bg-[#17182c] px-2 text-[11px] text-slate-200 outline-none focus:border-purple-400';
 
   return (
-    <div className="bg-[#111327] rounded-2xl border border-[#1f2343] p-4 shadow-xl">
-      {/* Header and top tab buttons */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#1f2343]/80">
-        <div className="flex items-center gap-2.5">
-          <Film className="w-5 h-5 text-purple-400" />
-          <div className="text-left">
-            <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
-              បង្កើតវីដេអូថ្មី
-              <span className="text-xs font-normal text-slate-400">(Create New Video)</span>
-            </h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 bg-[#0d0f22] p-1 rounded-xl border border-[#23274c]">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'create'
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-600 text-white shadow-md shadow-purple-900/40 border border-purple-400/40'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-            <span>បង្កើតវីដេអូ</span>
-            <span className="text-[10px] opacity-80 font-normal">(Create Video)</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('editor');
-              onSwitchToEditor();
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'editor'
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-600 text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Video className="w-3.5 h-3.5" />
-            <span>កែវីដេអូ</span>
-            <span className="text-[10px] opacity-80 font-normal">(AI Video Editor)</span>
-          </button>
+    <section aria-label="Create a story draft" className="studio-card create-story-card min-w-0 rounded-xl border border-[#292940] bg-[#121324] p-3.5">
+      <div className="studio-panel-heading mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#292940] pb-2.5">
+        <h2 className="flex items-center gap-2 text-[12px] font-semibold text-slate-100"><Film className="h-4 w-4 text-purple-400" /> បង្កើតរឿងថ្មី <span className="text-[10px] font-normal text-slate-500">New story</span></h2>
+        <div className="flex items-center rounded-lg border border-[#2c2c47] bg-[#0c0d1c] p-0.5">
+          <button type="button" onClick={() => setActiveTab('create')} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-medium ${activeTab === 'create' ? 'bg-purple-600 text-white' : 'text-slate-400'}`}><Sparkles className="h-3 w-3" />សាច់រឿង / Story</button>
+          <button type="button" onClick={() => { setActiveTab('editor'); onSwitchToEditor(); }} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-medium ${activeTab === 'editor' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'}`}><Video className="h-3 w-3" />កែវីដេអូ / Edit</button>
         </div>
       </div>
-
-      {/* Form Content */}
-      <div className="pt-3 space-y-3.5 text-left">
-        {/* Story Prompt */}
+      <div className="space-y-3">
+        <div><label htmlFor="studio-project-name" className="mb-1.5 block text-[11px] font-semibold text-slate-200">ឈ្មោះគម្រោង <span className="font-normal text-slate-500">/ Project name</span></label><input id="studio-project-name" maxLength={120} value={projectName} onChange={event => setProjectName(event.target.value)} placeholder="ឈ្មោះរឿងរបស់អ្នក…" className="studio-input h-[40px] w-full rounded-lg border border-[#2b2b46] bg-[#0d1626] px-3 text-[12px] text-slate-200" /></div>
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-bold text-slate-200">
-              គំនិតរឿង / Story Prompt <span className="text-rose-500">*</span>
-            </label>
-            <button
-              type="button"
-              onClick={loadExamplePrompt}
-              className="text-xs text-purple-400 hover:text-purple-300 underline underline-offset-2 font-medium"
-            >
-              + ឧទាហរណ៍គំរូ (Example Prompt)
-            </button>
-          </div>
-          <div className="relative">
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
-              rows={3}
-              placeholder="បញ្ចូលគំនិត គំរូសង្ខេបដែលអ្នកចង់បាន...&#10;Enter your story idea or a short story description here..."
-              className="w-full bg-[#0b0c1b] border border-[#23274c] rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none leading-relaxed"
-            />
-            <span className="absolute bottom-2.5 right-3 text-[11px] text-slate-400 font-mono">
-              {prompt.length} / 2000
-            </span>
-          </div>
+          <div className="mb-1.5 flex items-center justify-between gap-2"><label htmlFor="studio-story-prompt" className="text-[11px] font-semibold text-slate-200">គំនិតរឿង <span className="font-normal text-slate-500">/ Story prompt</span><span className="ml-1 text-purple-400">*</span></label><button type="button" onClick={() => setPrompt('ដំណើរផ្សងព្រេងរបស់ក្មេងប្រុសក្លាហាន និងសត្វស្វាមន្តអាគមនៅក្នុងព្រៃអច្ឆរិយៈ ដើម្បីស្វែងរកប្រាសាទពេជ្រអណ្តែតលើអាកាស')} className="text-[10px] font-medium text-purple-300 hover:text-purple-200">+ ឧទាហរណ៍ / Example</button></div>
+          <div className="relative"><textarea id="studio-story-prompt" value={prompt} onChange={event => { setPrompt(event.target.value.slice(0, 2000)); setError(''); setFeedback(''); }} placeholder="សរសេរគំនិតរឿង ឬដំណើរផ្សងព្រេងរបស់អ្នក…" className="studio-input block h-[78px] w-full resize-none rounded-lg border border-[#2b2b46] bg-[#0b0c19] px-3 py-2.5 pr-4 text-[11px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 focus:border-purple-400" /><span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] tabular-nums text-slate-600">{prompt.length} / 2000</span></div>
         </div>
 
-        {/* 3 Dropdown Selectors */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-          {/* Duration */}
-          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-purple-400" />
-              រយៈពេល / Duration
-            </label>
-            <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
-            >
-              <option value="5-20 minutes">⏱️ 5–20 នាទី / 5–20 min</option>
-              <option value="5 minutes">⏱️ 5 នាទី / 5 minutes</option>
-              <option value="10 minutes">⏱️ 10 នាទី / 10 minutes</option>
-              <option value="15 minutes">⏱️ 15 នាទី / 15 minutes</option>
-              <option value="20 minutes">⏱️ 20 នាទី / 20 minutes</option>
-            </select>
-          </div>
-
-          {/* Resolution */}
-          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Monitor className="w-3.5 h-3.5 text-blue-400" />
-              គុណភាព / Resolution
-            </label>
-            <select
-              value={resolution}
-              onChange={(e) => setResolution(e.target.value)}
-              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
-            >
-              <option value="1080p">🖥️ 1080p (Full HD)</option>
-              <option value="4k">🖥️ 4K (Ultra HD)</option>
-              <option value="720p">🖥️ 720p (Fast Render)</option>
-            </select>
-          </div>
-
-          {/* Animation Style */}
-          <div className="bg-[#0c0d1e] border border-[#23274c] rounded-xl p-2.5">
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Palette className="w-3.5 h-3.5 text-pink-400" />
-              រចនាប័ទ្ម / Style
-            </label>
-            <select
-              value={style}
-              onChange={(e) => setStyle(e.target.value)}
-              className="w-full bg-[#13152d] border border-[#23274c] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-semibold"
-            >
-              <option value="3D Cartoon (Pixar-like)">🎨 3D Cartoon (Pixar-like)</option>
-              <option value="2D Anime Expressive">🎨 2D Anime Expressive</option>
-              <option value="Fantasy Watercolor">🎨 Fantasy Watercolor</option>
-              <option value="Claymation 3D">🎨 Claymation 3D</option>
-            </select>
-          </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="min-w-0"><label htmlFor="studio-duration" className={fieldLabel}><Clock className="h-3 w-3 text-purple-400" /><span>រយៈពេល <span className="hidden 2xl:inline">/ Duration</span></span></label><select id="studio-duration" value={duration} onChange={event => setDuration(event.target.value)} className={selectClass}><option value="5-20 minutes">5–20 នាទី / min</option><option value="5 minutes">5 នាទី / min</option><option value="10 minutes">10 នាទី / min</option><option value="15 minutes">15 នាទី / min</option><option value="20 minutes">20 នាទី / min</option></select></div>
+          <div className="min-w-0"><label htmlFor="studio-resolution" className={fieldLabel}><Monitor className="h-3 w-3 text-blue-400" /><span>គុណភាព <span className="hidden 2xl:inline">/ Quality</span></span></label><select id="studio-resolution" value={resolution} onChange={event => setResolution(event.target.value)} className={selectClass}><option value="1080p">1080p · Full HD</option><option value="4k">4K · Ultra HD</option><option value="720p">720p · HD</option></select></div>
+          <div className="min-w-0"><label htmlFor="studio-style" className={fieldLabel}><Palette className="h-3 w-3 text-pink-400" /><span>រចនាប័ទ្ម <span className="hidden 2xl:inline">/ Style</span></span></label><select id="studio-style" value={style} onChange={event => setStyle(event.target.value)} className={selectClass}><option value="3D Cartoon (Pixar-like)">3D Cartoon</option><option value="2D Anime Expressive">2D Anime</option><option value="Fantasy Watercolor">Watercolor</option><option value="Claymation 3D">Claymation</option></select></div>
         </div>
 
-        {/* Output Languages Selection with exact flag badges */}
-        <div>
-          <label className="block text-xs font-bold text-slate-200 mb-1.5">
-            ភាសាបញ្ចេញ / Output Languages
-          </label>
-          <div className="grid grid-cols-3 gap-2.5">
-            {/* Khmer */}
-            <button
-              type="button"
-              onClick={() => toggleLanguage('km')}
-              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                languages.km
-                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
-                  <img src="/assets/flag_kh.png" alt="Khmer" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold">ខ្មែរ</span>
-                  <span className="text-[10px] text-slate-400 font-medium">Khmer</span>
-                </div>
-              </div>
-              <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.km ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
-                {languages.km && <Check className="w-3 h-3 stroke-[3]" />}
-              </div>
-            </button>
+        <div><p className="mb-1.5 text-[11px] font-semibold text-slate-200">ភាសា <span className="font-normal text-slate-500">/ Output languages</span></p><div className="grid grid-cols-3 gap-2">{languageItems.map(item => <button key={item.id} type="button" aria-pressed={languages[item.id]} onClick={() => setLanguages(previous => ({ ...previous, [item.id]: !previous[item.id] }))} className={`flex min-w-0 items-center justify-between gap-1.5 rounded-lg border px-2 py-2 text-left transition-colors ${languages[item.id] ? 'border-purple-500/70 bg-purple-500/10' : 'border-[#2d2d49] bg-[#0d0e1c]'}`}><span className="flex min-w-0 items-center gap-2"><span className="language-code-badge">{{ km: 'KH', en: 'EN', zh: '中' }[item.id]}</span><span className="min-w-0"><span className="block truncate text-[10px] font-semibold text-slate-200">{item.kh}</span><span className="block text-[9px] text-slate-500">{item.en}</span></span></span><span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${languages[item.id] ? 'border-purple-400 bg-purple-500 text-white' : 'border-slate-600'}`}>{languages[item.id] && <Check className="h-2.5 w-2.5" />}</span></button>)}</div></div>
 
-            {/* English */}
-            <button
-              type="button"
-              onClick={() => toggleLanguage('en')}
-              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                languages.en
-                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
-                  <img src="/assets/flag_us.png" alt="English" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold">អង់គ្លេស</span>
-                  <span className="text-[10px] text-slate-400 font-medium">English</span>
-                </div>
-              </div>
-              <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.en ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
-                {languages.en && <Check className="w-3 h-3 stroke-[3]" />}
-              </div>
-            </button>
-
-            {/* Chinese */}
-            <button
-              type="button"
-              onClick={() => toggleLanguage('zh')}
-              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                languages.zh
-                  ? 'bg-purple-950/60 border-purple-500 text-white shadow-sm'
-                  : 'bg-[#0c0d1e] border-[#23274c] text-slate-400'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-5 rounded overflow-hidden shadow-sm flex-shrink-0">
-                  <img src="/assets/flag_cn.png" alt="Chinese" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold">ចិន</span>
-                  <span className="text-[10px] text-slate-400 font-medium">Chinese</span>
-                </div>
-              </div>
-              <div className={`w-4 h-4 rounded flex items-center justify-center border ${languages.zh ? 'bg-purple-600 border-purple-400 text-white' : 'border-slate-600'}`}>
-                {languages.zh && <Check className="w-3 h-3 stroke-[3]" />}
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Primary Action Button matching exact mockup gradient */}
-        <button
-          type="button"
-          disabled={isGenerating}
-          onClick={handleGenerate}
-          className="w-full py-3.5 px-4 rounded-xl font-bold text-xs md:text-sm bg-gradient-to-r from-[#8b5cf6] via-[#7c3aed] to-[#9333ea] hover:brightness-110 text-white shadow-lg shadow-purple-900/50 transition-all flex items-center justify-center gap-2 border border-purple-400/40 active:scale-[0.99] disabled:opacity-50"
-        >
-          <Sparkles className="w-4 h-4 text-purple-200" />
-          <span>{isGenerating ? 'កំពុងរៀបចំប្លង់សាច់រឿង... (Generating Plan...)' : 'បង្កើតវីដេអូ 3 វីដេអូ Generate 3 Videos'}</span>
-        </button>
+        <div className="space-y-1.5"><button type="button" disabled={isGenerating} onClick={() => void handleGenerate()} className="studio-button flex h-[38px] w-full items-center justify-center gap-2 rounded-lg border border-purple-400/40 bg-gradient-to-r from-violet-600 to-purple-600 text-[11px] font-semibold text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">{isGenerating ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}{isGenerating ? 'កំពុងរក្សាទុក… / Saving…' : 'បង្កើតសេចក្ដីព្រាងរឿង / Create story draft'}</button><p className="text-center text-[9px] leading-relaxed text-slate-500">រក្សាទុកគំនិត និងការកំណត់របស់អ្នក · AI video rendering is planned.</p></div>
+        {error && <p role="alert" className="rounded-lg bg-rose-500/10 px-2.5 py-2 text-[10px] leading-relaxed text-rose-300">{error}</p>}
+        {feedback && <p role="status" className="text-[10px] text-emerald-300">{feedback}</p>}
       </div>
-    </div>
+    </section>
   );
 };

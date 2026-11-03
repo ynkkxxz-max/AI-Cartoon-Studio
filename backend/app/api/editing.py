@@ -74,6 +74,15 @@ def media(video_id: str):
     return _execute(inspect)
 
 
+@router.get("/uploads")
+def uploads():
+    # The picker lists filenames cheaply; probe only the video the user opens.
+    paths = sorted(engine.UPLOADS_DIR.iterdir(), key=lambda path: path.stat().st_mtime, reverse=True)
+    return [{"video_id": path.stem, "filename": path.name}
+            for path in paths if path.is_file() and path.suffix.lower() in {".mp4", ".mov", ".avi", ".mkv", ".webm"}
+            and path.resolve().parent == engine.UPLOADS_DIR.resolve()][:100]
+
+
 @router.post("/convert")
 def convert(req: ConvertRequest):
     return _execute(lambda: engine.convert_video(engine.resolve_video(req.video_id), req.aspect_ratio))

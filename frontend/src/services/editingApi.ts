@@ -46,6 +46,12 @@ function post<T>(operation: string, data: unknown): Promise<T> {
 }
 
 export const editingApi = {
+  listUploads(): Promise<{ video_id: string; filename: string }[]> {
+    return request('/api/editor/timeline/uploads');
+  },
+  open(videoId: string): Promise<EditorMedia> {
+    return request(`/api/editor/timeline/media/${encodeURIComponent(videoId)}`);
+  },
   async upload(file: File): Promise<EditorMedia> {
     const form = new FormData();
     form.append('file', file);

@@ -47,7 +47,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, sys
             <button
               key={item.id}
               onClick={() => {
-                if (item.action) {
+                if (item.id === 'video_editor') {
+                  window.location.assign('/clip-editor.html');
+                } else if (item.action) {
                   item.action();
                 } else {
                   setActiveView(item.id);

@@ -1,188 +1,133 @@
-import { useEffect, useState, useRef } from 'react';
-import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { HeroBanner } from './components/HeroBanner';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, AudioLines, Box, Check, ChevronRight, Film, Folder, HardDrive, Languages, Layers, LayoutDashboard, LoaderCircle, Plus, Search, Settings, Sparkles, Upload, Video, X } from 'lucide-react';
 import { CreateVideoCard } from './components/CreateVideoCard';
 import { CharacterSection } from './components/CharacterSection';
-import { PreviewPlayer } from './components/PreviewPlayer';
 import { VoiceEnginePanel } from './components/VoiceEnginePanel';
-import { PipelineStepper } from './components/PipelineStepper';
-import { VideoEditorCard } from './components/VideoEditorCard';
-import { MyProjectsModal } from './components/MyProjectsModal';
 import { AddCharacterModal } from './components/AddCharacterModal';
+import { DeleteCharacterDialog } from './components/DeleteCharacterDialog';
+import { ClipTimelineEditor } from './components/ClipTimelineEditor';
 import { api } from './services/api';
-import type { Character, VoiceCatalog, SystemStatus, Project } from './services/api';
+import { editingApi } from './services/editingApi';
+import type { Character, Project, SystemStatus, VoiceCatalog } from './services/api';
 
-export function App() {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+type View = 'dashboard' | 'create' | 'editor' | 'projects' | 'library' | 'settings';
+const views = [
+  { id: 'dashboard' as const, kh: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard', icon: LayoutDashboard },
+  { id: 'create' as const, kh: 'បង្កើតតុក្កតា', en: 'Generate Cartoon', icon: Sparkles },
+  { id: 'editor' as const, kh: 'បញ្ចូល និងកាត់ត', en: 'Upload & Edit', icon: Film },
+  { id: 'projects' as const, kh: 'គម្រោងរបស់ខ្ញុំ', en: 'My Projects', icon: Folder },
+  { id: 'library' as const, kh: 'បណ្ណាល័យ', en: 'Asset Library', icon: Layers },
+];
+const validView = (value: string): value is View => ['dashboard', 'create', 'editor', 'projects', 'library', 'settings'].includes(value);
+
+export default function App() {
+  const initial = window.location.hash.slice(1);
+  const [view, setView] = useState<View>(validView(initial) ? initial : 'dashboard');
+  const [projects, setProjects] = useState<Project[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [voices, setVoices] = useState<VoiceCatalog | null>(null);
+  const [system, setSystem] = useState<SystemStatus | null>(null);
+  const [uploads, setUploads] = useState<{ video_id: string; filename: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [query, setQuery] = useState('');
+  const [visited, setVisited] = useState({ create: initial === 'create', editor: initial === 'editor' });
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>(['char_boy', 'char_girl']);
-  const [voiceCatalog, setVoiceCatalog] = useState<VoiceCatalog | null>(null);
-  const [currentStep, setCurrentStep] = useState<number>(2);
-  const [projectCount, setProjectCount] = useState<number>(0);
-
-  // Modals
-  const [isProjectsOpen, setIsProjectsOpen] = useState<boolean>(false);
-  const [isAddCharOpen, setIsAddCharOpen] = useState<boolean>(false);
-
-  // Subtitles for preview player
-  const [subKh, setSubKh] = useState<string>("ដំណើរផ្សងព្រេងក្នុងទឹកដីវេទមន្តនៃស្ទូឌីយោតុក្កតា AI");
-  const [subEn, setSubEn] = useState<string>("The magic journey through the enchanted animated kingdom");
-
-  const editorRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (activeTab === 'video_editor') editorRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeTab]);
-
-  const loadData = async () => {
-    try {
-      const [sys, chars, voices, projs] = await Promise.all([
-        api.getSystemStatus().catch(() => null),
-        api.listCharacters().catch(() => []),
-        api.getVoiceCatalog().catch(() => null),
-        api.listProjects().catch(() => []),
-      ]);
-
-      if (sys) setSystemStatus(sys);
-      if (chars && chars.length > 0) setCharacters(chars);
-      if (voices) setVoiceCatalog(voices);
-      if (projs) setProjectCount(projs.length);
-    } catch (err) {
-      console.error('Initialization error:', err);
+  const [addCharacter, setAddCharacter] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Character | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [lastDeleted, setLastDeleted] = useState<{ character: Character; index: number; selected: boolean } | null>(null);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreError, setRestoreError] = useState('');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [libraryTab, setLibraryTab] = useState<'characters' | 'voices' | 'videos'>('characters');
+  const main = useRef<HTMLElement>(null);
+  const current = views.find(item => item.id === view);
+  const filtered = projects.filter(project => project.name.toLowerCase().includes(query.toLowerCase()));
+  const navigate = (next: View) => { setView(next); window.location.hash = next; setQuery(''); setSelectedProject(null); main.current?.scrollTo({ top: 0 }); };
+  const refresh = async () => {
+    setLoading(true); setLoadError('');
+    const results = await Promise.allSettled([api.listProjects(), api.listCharacters(), api.getVoiceCatalog(), api.getSystemStatus(), editingApi.listUploads()]);
+    if (results[0].status === 'fulfilled') setProjects(results[0].value); else setLoadError('មិនអាចភ្ជាប់ Studio បាន។ សូមបើក backend ហើយព្យាយាមម្ដងទៀត។');
+    if (results[1].status === 'fulfilled') {
+      const available = results[1].value;
+      setCharacters(available);
+      setSelectedCharacters(previous => previous.filter(id => available.some(character => character.id === id)));
     }
+    if (results[2].status === 'fulfilled') setVoices(results[2].value);
+    if (results[3].status === 'fulfilled') setSystem(results[3].value);
+    if (results[4].status === 'fulfilled') setUploads(results[4].value);
+    setLoading(false);
   };
-
+  useEffect(() => { void refresh(); }, []);
+  useEffect(() => { if (view === 'create' || view === 'editor') setVisited(previous => previous[view] ? previous : { ...previous, [view]: true }); }, [view]);
   useEffect(() => {
-    loadData();
+    const update = () => { const next = window.location.hash.slice(1); if (validView(next)) { setView(next); main.current?.scrollTo({ top: 0 }); } };
+    window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update);
   }, []);
-
-  const handleToggleSelectCharacter = (id: string) => {
-    setSelectedCharacters(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
+  const toggleCharacter = (id: string) => setSelectedCharacters(previous => previous.includes(id) ? previous.filter(value => value !== id) : [...previous, id]);
+  const audition = async (character: Character) => {
+    try { const result = await api.previewVoice(character.default_voice || 'km-KH-PisethNeural', 'សួស្តី! សូមស្វាគមន៍មកកាន់ស្ទូឌីយោរបស់យើង។'); await new Audio(result.audio_url).play(); }
+    catch { setLoadError('មិនអាចចាក់សំឡេងបាន។ សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយសាកម្ដងទៀត។'); }
   };
-
-  const handleAuditionVoice = async (char: Character) => {
+  const projectRows = (items: Project[]) => <div className="project-list">{items.length ? items.map(project => <button key={project.id} className="project-row" onClick={() => { if (view !== 'projects') { setView('projects'); window.location.hash = 'projects'; } setSelectedProject(project); }}>
+    <span className={`project-icon ${project.project_type === 'video_editor' ? 'teal' : ''}`}>{project.project_type === 'video_editor' ? <Film size={19} /> : <Sparkles size={19} />}</span>
+    <span className="project-name"><strong>{project.name}</strong><small>{project.project_type === 'video_editor' ? 'Video edit' : 'Story draft'} <span>·</span> {(project.languages || []).map(language => ({ km: 'KH', en: 'EN', zh: '中文' }[language] || language)).join(' / ')}</small></span><span className="status-tag">{project.status === 'completed' ? 'Completed' : project.project_type !== 'video_editor' ? 'Draft' : project.status}</span><ChevronRight size={15} />
+  </button>) : <div className="empty-state"><Folder size={27} /><strong>{query ? 'រកមិនឃើញគម្រោង' : 'កន្លែងសម្រាប់គំនិតបន្ទាប់របស់អ្នក'}</strong><p>{query ? 'សាកល្បងស្វែងរកដោយពាក្យផ្សេង។' : 'បង្កើតសេចក្ដីព្រាងដំបូង ដើម្បីចាប់ផ្ដើម។'}</p><button className="studio-button" onClick={() => navigate('create')}><Plus size={15} /> បង្កើតគម្រោង</button></div>}</div>;
+  const confirmDelete = async () => {
+    if (!pendingDelete || deleteBusy) return;
+    setDeleteBusy(true); setDeleteError('');
     try {
-      const sampleText = `${char.name_kh} បាននិយាយថា៖ សួស្តី! ខ្ញុំត្រៀមខ្លួនជាស្រេចដើម្បីចូលរួមសម្តែងក្នុងរឿងតុក្កតាថ្មីនេះហើយ!`;
-      const res = await api.previewVoice(char.default_voice || 'km-KH-PisethNeural', sampleText, 'km');
-      if (res.audio_url) {
-        const audio = new Audio(res.audio_url);
-        audio.play();
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      await api.deleteCharacter(pendingDelete.id);
+      setLastDeleted({ character: pendingDelete, index: characters.findIndex(item => item.id === pendingDelete.id), selected: selectedCharacters.includes(pendingDelete.id) });
+      setCharacters(previous => previous.filter(item => item.id !== pendingDelete.id));
+      setSelectedCharacters(previous => previous.filter(id => id !== pendingDelete.id));
+      setRestoreError(''); setPendingDelete(null);
+    } catch (cause) { setDeleteError(cause instanceof Error ? cause.message : 'Could not delete character'); }
+    finally { setDeleteBusy(false); }
   };
-
-  const handleProjectCreated = (proj: any) => {
-    setCurrentStep(3);
-    setProjectCount(prev => prev + 1);
-    if (proj.scenes && proj.scenes.length > 0) {
-      setSubKh(proj.scenes[0].dialogue.km);
-      setSubEn(proj.scenes[0].dialogue.en);
-    }
+  const undoDelete = async () => {
+    if (!lastDeleted || restoreBusy) return;
+    setRestoreBusy(true); setRestoreError('');
+    try {
+      const restored = await api.restoreCharacter(lastDeleted.character.id);
+      setCharacters(previous => { if (previous.some(item => item.id === restored.id)) return previous; const next = [...previous]; next.splice(Math.max(0, lastDeleted.index), 0, restored); return next; });
+      if (lastDeleted.selected) setSelectedCharacters(previous => previous.includes(restored.id) ? previous : [...previous, restored.id]);
+      setLastDeleted(null);
+    } catch (cause) { setRestoreError(cause instanceof Error ? cause.message : 'Could not restore character'); }
+    finally { setRestoreBusy(false); }
   };
+  const characterPanel = <CharacterSection characters={characters} selectedCharacters={selectedCharacters} onToggleSelect={toggleCharacter} onOpenAddModal={() => setAddCharacter(true)} onAuditionVoice={character => void audition(character)} deletionDisabled={deleteBusy || restoreBusy} onDelete={character => { setDeleteError(''); setPendingDelete(character); }} />;
 
-  const handleSelectProject = (proj: Project) => {
-    setCurrentStep(proj.pipeline_step || 2);
-    if (proj.metadata?.scenes && proj.metadata.scenes.length > 0) {
-      setSubKh(proj.metadata.scenes[0].dialogue.km);
-      setSubEn(proj.metadata.scenes[0].dialogue.en);
-    }
-  };
-
-  const scrollToEditor = () => {
-    editorRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  return (
-    <div className="min-h-screen bg-[#090a16] flex flex-col text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
-      {/* Top Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        projectCount={projectCount}
-        onOpenProjects={() => setIsProjectsOpen(true)}
-      />
-
-      {/* Main Body Layout: Sidebar + Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar
-          activeView={activeTab}
-          setActiveView={setActiveTab}
-          systemStatus={systemStatus}
-          onOpenProjects={() => setIsProjectsOpen(true)}
-        />
-
-        {/* Scrollable Center & Right Content */}
-        <main className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Top Hero Banner */}
-          <HeroBanner />
-
-          {/* Primary Top Production Grid (5 cols Create Card, 4 cols Characters & Preview, 3 cols Voice Engine) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            {/* Left Column: Create Video Card */}
-            <div className="lg:col-span-5">
-              <CreateVideoCard
-                onProjectCreated={handleProjectCreated}
-                onSwitchToEditor={scrollToEditor}
-                selectedCharacters={selectedCharacters}
-              />
-            </div>
-
-            {/* Center Column: Characters & Video Preview */}
-            <div className="lg:col-span-4 space-y-4">
-              <CharacterSection
-                characters={characters}
-                selectedCharacters={selectedCharacters}
-                onToggleSelect={handleToggleSelectCharacter}
-                onOpenAddModal={() => setIsAddCharOpen(true)}
-                onAuditionVoice={handleAuditionVoice}
-              />
-
-              <PreviewPlayer
-                currentSubtitleKh={subKh}
-                currentSubtitleEn={subEn}
-              />
-            </div>
-
-            {/* Right Column: AI Smart Voice & Sound */}
-            <div className="lg:col-span-3">
-              <VoiceEnginePanel catalog={voiceCatalog} />
-            </div>
-          </div>
-
-          {/* Middle Horizontal Workflow Pipeline Stepper */}
-          <PipelineStepper currentStep={currentStep} />
-
-          {/* Bottom Panel: AI Real Video Editor */}
-          <div ref={editorRef}>
-            <VideoEditorCard />
-          </div>
-        </main>
-      </div>
-
-      {/* Modals */}
-      <MyProjectsModal
-        isOpen={isProjectsOpen}
-        onClose={() => setIsProjectsOpen(false)}
-        onSelectProject={handleSelectProject}
-      />
-
-      <AddCharacterModal
-        isOpen={isAddCharOpen}
-        onClose={() => setIsAddCharOpen(false)}
-        onCharacterAdded={(newChar) => {
-          setCharacters(prev => [...prev, newChar]);
-          setSelectedCharacters(prev => [...prev, newChar.id]);
-        }}
-      />
+  return <div className="workspace-app">
+    <aside className="workspace-sidebar">
+      <a className="workspace-brand" href="#dashboard" onClick={event => { event.preventDefault(); navigate('dashboard'); }} aria-label="AI Cartoon Studio dashboard"><span className="brand-symbol"><Layers size={22} /></span><span><strong>AI Cartoon<br />Studio</strong><small>PERSONAL EDITION</small></span></a>
+      <span className="nav-caption">WORKSPACE</span>
+      <nav aria-label="Workspace navigation">{views.map(({ id, kh, en, icon: Icon }) => <button key={id} type="button" onClick={() => navigate(id)} aria-current={view === id ? 'page' : undefined} className={`workspace-nav-item ${view === id ? 'is-active' : ''}`} title={en}><Icon size={17} /><span>{kh}<small>{en}</small></span>{id === 'projects' && projects.length > 0 && <em>{projects.length}</em>}</button>)}</nav>
+      <div className="sidebar-bottom"><div className="creative-space"><span>YOUR CREATIVE SPACE</span><strong>Made for your imagination.</strong><p>គំនិតមួយ អាចក្លាយជារឿងដ៏អស្ចារ្យ។</p><div className="space-divider" /></div><button className={`workspace-nav-item ${view === 'settings' ? 'is-active' : ''}`} onClick={() => navigate('settings')} title="Settings"><Settings size={16} /><span>ការកំណត់<small>Settings</small></span></button><small className="workspace-version">LOCAL STUDIO · v1.0</small></div>
+    </aside>
+    <div className="workspace-column">
+      <header className="workspace-topbar"><div className="breadcrumb"><span>Workspace</span><ChevronRight size={12} /><strong>{current?.en || 'Settings'}</strong></div><div className="topbar-actions"><form className="workspace-search" onSubmit={event => { event.preventDefault(); setView('projects'); window.location.hash = 'projects'; }}><Search size={15} /><input value={query} onChange={event => { setQuery(event.target.value); if (event.target.value) { setView('projects'); window.location.hash = 'projects'; } }} placeholder="ស្វែងរកគម្រោង…" aria-label="Search projects" />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={13} /></button>}</form><span className={`connection-dot ${system ? 'online' : ''}`} title={system ? 'Local backend connected' : 'Backend connection unavailable'} /><span className="user-avatar" title="Personal workspace">YOU</span></div></header>
+      <main className={`workspace-main view-${view}`} ref={main} id="workspace-content"><div className="page-wrap">
+        {loadError && <div role="alert" className="workspace-notice"><span>{loadError}</span><button onClick={() => void refresh()}>ព្យាយាមម្ដងទៀត</button><button aria-label="Dismiss notice" onClick={() => setLoadError('')}><X size={14} /></button></div>}
+        {view === 'dashboard' && <>
+          <div className="page-heading"><span className="eyebrow">YOUR CREATIVE UNIVERSE</span><h1>សូមស្វាគមន៍មកកាន់ Studio<span className="heading-badge">PERSONAL</span></h1><p>កន្លែងដែលគំនិតរបស់អ្នក ចាប់ផ្ដើមក្លាយជារឿង។</p></div>
+          <section className="universe-hero"><div className="hero-copy"><span className="hero-label"><span /> CREATE SOMETHING WONDERFUL</span><h2>គ្រប់គំនិត មានពិភព<br /><span>របស់ខ្លួនឯង។</span></h2><p>រៀបចំរឿងតុក្កតារបស់អ្នក ឬកែច្នៃវីដេអូដែលអ្នកបានថត។<br />One workspace. Two creative possibilities.</p><div className="hero-actions"><button className="studio-button" onClick={() => navigate('create')}><Plus size={16} /> បង្កើតរឿងថ្មី</button><button className="studio-button secondary" onClick={() => navigate('editor')}><Video size={16} /> កាត់តវីដេអូ</button></div></div><div className="universe-art" role="img" aria-label="A glowing creative universe with orbiting stars"><div className="universe-glow" /><div className="universe-orbit orbit-one" /><div className="universe-orbit orbit-two" /><div className="universe-planet"><Sparkles size={47} strokeWidth={1.2} /></div><span className="art-star star-one">✦</span><span className="art-star star-two">✧</span><span className="art-star star-three">✦</span><span className="art-pill"><Layers size={15} /> Creative possibilities</span><span className="art-language"><Languages size={17} /><span>Three languages<small>ខ្មែរ · English · 中文</small></span></span></div></section>
+          <div className="workspace-stats"><div><span>គម្រោងរបស់អ្នក <small>Projects</small></span><strong>{loading ? '—' : String(projects.length).padStart(2, '0')}</strong><Folder size={21} /></div><div><span>លំហូរការងារ <small>Creative workflows</small></span><strong>02</strong><Sparkles size={21} /></div><div><span>ភាសាគម្រោង <small>Project languages</small></span><strong>03</strong><Languages size={21} /></div></div>
+          <div className="section-heading"><h2>ជ្រើសរើសការងាររបស់អ្នក</h2><p>Two creative spaces. A clear place to start.</p></div>
+          <div className="workflow-grid"><button className="workflow-card" onClick={() => navigate('create')}><span className="workflow-icon"><Sparkles size={23} /></span><h3>បង្កើតតុក្កតា <small>Generate Cartoon</small></h3><p>ចាប់ផ្ដើមពីគំនិត រៀបចំតួអង្គ និងភាសារបស់រឿង។</p><span className="workflow-meta">Story · Characters · Languages</span><ArrowRight size={19} /></button><button className="workflow-card editor-workflow" onClick={() => navigate('editor')}><span className="workflow-icon"><Film size={23} /></span><h3>បញ្ចូល និងកាត់ត <small>Upload & Edit</small></h3><p>កាត់ ភ្ជាប់ clips ពិនិត្យចន្លោះស្ងាត់ និងនាំចេញ MP4។</p><span className="workflow-meta">Upload · Refine · Export</span><ArrowRight size={19} /></button></div>
+          <div className="section-heading with-action"><div><h2>គម្រោងថ្មីៗ</h2><p>Pick up where your last idea began.</p></div><button className="studio-text-link" onClick={() => navigate('projects')}>មើលទាំងអស់ <ArrowRight size={13} /></button></div>{loading ? <div className="loading-state"><LoaderCircle className="animate-spin" size={18} /> កំពុងទាញយកគម្រោង…</div> : projectRows(projects.slice(0, 3))}
+        </>}
+        {(view === 'create' || visited.create) && <div style={{ display: view === 'create' ? undefined : 'none' }}><div className="page-heading"><span className="eyebrow">WORKFLOW 01 · YOUR NEXT STORY</span><h1>បង្កើតតុក្កតា <small>Generate Cartoon</small></h1><p>ចាប់ផ្ដើមពីគំនិតតូចមួយ ហើយរៀបចំរឿងរបស់អ្នកតាមលំដាប់។</p></div><div className="create-workspace"><CreateVideoCard selectedCharacters={selectedCharacters} onSwitchToEditor={() => navigate('editor')} onProjectCreated={() => { void refresh(); }} /><aside className="story-guide studio-card"><div className="section-heading"><h2>ពិភពរឿងរបស់អ្នក</h2><p>Story development workspace</p></div><div className="story-concept-art"><span className="concept-moon" /><Sparkles size={55} strokeWidth={1} /><span>YOUR NEXT GREAT STORY</span></div><h3 className="guide-label">LANGUAGE EXPORT PLAN</h3>{[{ code: 'KH', name: 'ខ្មែរ', sub: 'Khmer version' }, { code: 'EN', name: 'English', sub: 'English version' }, { code: '中文', name: '中文', sub: 'Chinese version' }].map(language => <div className="language-plan" key={language.code}><span>{language.code}</span><div><strong>{language.name}</strong><small>{language.sub}</small></div><em>Separate video</em></div>)}<p className="capability-note">រក្សាទុកសេចក្ដីព្រាងបានឥឡូវនេះ។ ការបង្កើតវីដេអូ AI ពេញលេញកំពុងរៀបចំ។</p></aside></div><details className="creative-details"><summary><Box size={16} /> តួអង្គសម្រាប់រឿងនេះ <span>{selectedCharacters.length} selected</span></summary>{characterPanel}</details></div>}
+        {(view === 'editor' || visited.editor) && <div style={{ display: view === 'editor' ? undefined : 'none' }}><div className="page-heading"><span className="eyebrow">WORKFLOW 02 · YOUR OWN FOOTAGE</span><h1>បញ្ចូល និងកាត់ត <small>Upload & Edit</small></h1><p>ឧបករណ៍កាត់តជាក់ស្ដែង សម្រាប់វីដេអូរបស់អ្នក។</p></div><div className="embedded-editor"><ClipTimelineEditor /></div></div>}
+        {view === 'projects' && <><div className="page-heading"><span className="eyebrow">ORGANIZE YOUR IDEAS</span><h1>គម្រោងរបស់ខ្ញុំ <small>My Projects</small></h1><p>គ្រប់គំនិតរបស់អ្នក រក្សាទុកនៅកន្លែងតែមួយ។</p></div><div className="section-heading with-action"><div><h2>គម្រោងទាំងអស់ <span className="count-label">{filtered.length}</span></h2><p>{query ? `Search: ${query}` : 'Your saved stories and video projects.'}</p></div><button className="studio-button" onClick={() => navigate('create')}><Plus size={15} /> គម្រោងថ្មី</button></div>{projectRows(filtered)}{selectedProject && <section className="project-detail studio-card"><div className="section-heading with-action"><h2>{selectedProject.name}</h2><button className="icon-button" aria-label="Close project details" onClick={() => setSelectedProject(null)}><X size={17} /></button></div><p>{selectedProject.story_prompt || 'Video editing project'}</p><div className="detail-metadata"><span>Style <strong>{selectedProject.style}</strong></span><span>Target length <strong>{selectedProject.duration_preset}</strong></span><span>Saved <strong>{new Date(selectedProject.updated_at).toLocaleDateString('en-GB')}</strong></span></div><span className="capability-note">Saved draft · {selectedProject.status}</span></section>}</>}
+        {view === 'library' && <><div className="page-heading"><span className="eyebrow">YOUR CREATIVE LIBRARY</span><h1>បណ្ណាល័យ <small>Asset Library</small></h1><p>រក្សាតួអង្គ សំឡេង និងវីដេអូរបស់អ្នកឱ្យមានរបៀប។</p></div><div className="library-tabs" role="tablist" aria-label="Asset category">{([{ id: 'characters', icon: Box, text: 'តួអង្គ / Characters', count: characters.length }, { id: 'voices', icon: AudioLines, text: 'សំឡេង / Voices', count: voices?.human?.length || 0 }, { id: 'videos', icon: Video, text: 'វីដេអូ / Videos', count: uploads.length }] as const).map(({ id, icon: Icon, text, count }) => <button key={id} role="tab" aria-selected={libraryTab === id} onClick={() => setLibraryTab(id)}><Icon size={16} />{text}<span>{count}</span></button>)}</div>{libraryTab === 'characters' && <div className="library-characters">{characterPanel}</div>}{libraryTab === 'voices' && <div className="library-voices"><VoiceEnginePanel catalog={voices} /></div>}{libraryTab === 'videos' && <div className="project-list">{uploads.length ? uploads.map(video => <a key={video.video_id} className="project-row" href={`/api/editor/stream/${encodeURIComponent(video.filename)}`} target="_blank" rel="noreferrer"><span className="project-icon teal"><Video size={20} /></span><span className="project-name"><strong>{video.filename}</strong><small>Uploaded footage · Original file</small></span><ArrowRight size={17} /></a>) : <div className="empty-state"><Upload size={27} /><strong>មិនទាន់មានវីដេអូ</strong><button className="studio-button" onClick={() => navigate('editor')}>បញ្ចូលវីដេអូ</button></div>}</div>}</>}
+        {view === 'settings' && <><div className="page-heading"><span className="eyebrow">PERSONAL WORKSPACE</span><h1>ការកំណត់ <small>Settings</small></h1><p>ព័ត៌មានអំពី Studio ក្នុងកុំព្យូទ័ររបស់អ្នក។</p></div><div className="settings-grid"><section className="studio-card settings-card"><HardDrive size={22} /><h2>ការផ្ទុក / Storage</h2><strong>{system ? `${system.storage_used_gb} / ${system.storage_total_gb} GB` : 'Unavailable'}</strong><div className="storage-track"><span style={{ width: `${Math.min(system?.storage_pct || 0, 100)}%` }} /></div><p>ទំហំថាសសរុបក្នុងម៉ាស៊ីន / Total machine disk usage</p></section><section className="studio-card settings-card"><Check size={22} /><h2>ស្ថានភាព / System status</h2><strong>{system ? 'Backend connected' : 'Offline'}</strong><p>FFmpeg: {system?.ffmpeg_available ? 'Available' : 'Unavailable'}</p><button className="studio-button secondary" onClick={() => void refresh()} disabled={loading}>ពិនិត្យម្ដងទៀត</button></section></div></>}
+      </div></main>
     </div>
-  );
+    {pendingDelete && <DeleteCharacterDialog character={pendingDelete} busy={deleteBusy} error={deleteError} onCancel={() => setPendingDelete(null)} onConfirm={() => void confirmDelete()} />}
+    {lastDeleted && <div className="character-undo" role="status"><Check size={16} /><span>បានលុប {lastDeleted.character.name_kh || lastDeleted.character.name_en}{restoreError && <small role="alert">{restoreError}</small>}</span><button disabled={restoreBusy} onClick={() => void undoDelete()}>{restoreBusy ? 'កំពុងស្ដារ…' : 'ស្ដារវិញ / Undo'}</button><button aria-label="Dismiss undo notification" disabled={restoreBusy} onClick={() => setLastDeleted(null)}><X size={14} /></button></div>}
+    <AddCharacterModal isOpen={addCharacter} onClose={() => setAddCharacter(false)} onCharacterAdded={character => { setCharacters(previous => [...previous, character]); setSelectedCharacters(previous => [...previous, character.id]); }} />
+  </div>;
 }
-
-export default App;

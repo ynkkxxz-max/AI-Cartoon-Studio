@@ -13,6 +13,8 @@ const message = (error: unknown) => error instanceof Error ? error.message : '�
 export function ClipTimelineEditor() {
   const [sources, setSources] = useState<EditorMedia[]>([]);
   const [sourceId, setSourceId] = useState('');
+  const [savedUploads, setSavedUploads] = useState<{ video_id: string; filename: string }[] | null>(null);
+  const [savedId, setSavedId] = useState('');
   const [range, setRange] = useState({ start: 0, end: 0 });
   const [clips, setClips] = useState<TimelineClip[]>([]);
   const [analyses, setAnalyses] = useState<Record<string, SilenceAnalysis>>({});
@@ -31,7 +33,7 @@ export function ClipTimelineEditor() {
   const analysis = source ? analyses[source.video_id] : undefined;
   const validRange = Boolean(source && range.start >= 0 && range.end <= source.duration && range.end - range.start >= 0.1 - 0.000001);
   const totalDuration = clips.reduce((sum, clip) => sum + clip.end_time - clip.start_time, 0) - (fade ? Math.max(0, clips.length - 1) * 0.25 : 0);
-  const hasShortFade = fade && clips.some(clip => clip.end_time - clip.start_time <= 0.5);
+  const hasShortFade = fade && clips.length > 1 && clips.some(clip => clip.end_time - clip.start_time <= 0.5);
   const keepSpans = analysis?.keep_segments ?? [];
   const shortKeepSpans = keepSpans.filter(span => span.end_time - span.start_time < 0.1 - 0.000001).length;
 
@@ -78,6 +80,28 @@ export function ClipTimelineEditor() {
       }
       if (failures.length) setError(failures.join('\n'));
       if (fileInput.current) fileInput.current.value = '';
+    });
+  }
+
+  async function loadSavedUploads() {
+    await run('កំពុងរកវីដេអូដែលបានរក្សា / Loading saved uploads…', async () => {
+      const saved = await editingApi.listUploads();
+      setSavedUploads(saved);
+      setSavedId(previous => saved.some(item => item.video_id === previous) ? previous : saved[0]?.video_id ?? '');
+    });
+  }
+
+  async function openSavedUpload() {
+    if (!savedId) return;
+    await run('កំពុងបើកវីដេអូ / Opening saved video…', async () => {
+      const media = await editingApi.open(savedId);
+      playbackEnd.current = null;
+      setSources(previous => previous.some(item => item.video_id === media.video_id)
+        ? previous.map(item => item.video_id === media.video_id ? media : item)
+        : [...previous, media]);
+      setSourceId(media.video_id);
+      setRange({ start: 0, end: media.duration });
+      setNotice('បានបើកវីដេអូដែលបានរក្សា។ / Saved video opened.');
     });
   }
 
@@ -135,7 +159,7 @@ export function ClipTimelineEditor() {
   }
 
   return (
-    <section aria-label="Video clip editor" className="rounded-2xl border border-[#292b50] bg-[#111327] p-4 text-left shadow-xl space-y-4">
+    <section aria-label="Video clip editor" data-has-media={Boolean(source)} className="rounded-2xl border border-[#292b50] bg-[#111327] p-4 text-left shadow-xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#292b50] pb-3">
         <h2 className="flex items-center gap-2 text-sm font-bold text-white"><FileVideo className="h-5 w-5 text-purple-400" /> កាត់ និងភ្ជាប់វីដេអូ <span className="font-normal text-slate-400">/ Clip Editor</span></h2>
         <span className="rounded-full border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-[11px] text-emerald-300">Local editing · MP4 export</span>
@@ -148,7 +172,14 @@ export function ClipTimelineEditor() {
         <UploadCloud className="h-6 w-6 text-purple-300" /><span>ជ្រើស ឬអូសវីដេអូចូល / Upload videos <small className="block text-xs text-slate-400">MP4 · MOV · AVI · MKV · WebM · multiple files</small></span>
       </button>
 
-      <fieldset disabled={Boolean(busy)} className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2 disabled:opacity-70">
+      <div className={`${panel} saved-upload-panel space-y-2`}>
+        <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-xs font-semibold text-white">វីដេអូដែលបានរក្សា / Saved uploads</h3><button type="button" className={subtle} disabled={Boolean(busy)} onClick={() => void loadSavedUploads()}>បើកបណ្ណាល័យ / Saved uploads</button></div>
+        <p className="text-[11px] text-slate-400">បើកវីដេអូដែលធ្លាប់ Upload ពីមុន ដោយមិនចាំបាច់ Upload ម្ដងទៀត។ / Reopen uploaded videos after a reload.</p>
+        {savedUploads !== null && (savedUploads.length ? <fieldset disabled={Boolean(busy)} className="flex min-w-0 flex-wrap gap-2"><legend className="sr-only">Open a saved upload</legend><label htmlFor="saved-video-select" className="sr-only">Saved video</label><select id="saved-video-select" value={savedId} onChange={event => { invalidate(); setSavedId(event.target.value); }} className="min-w-0 flex-1 rounded-lg border border-[#35385d] bg-[#16182e] px-3 py-2 text-xs text-white">{savedUploads.map(item => <option key={item.video_id} value={item.video_id}>{item.filename}</option>)}</select><button type="button" className={button} disabled={!savedId} onClick={() => void openSavedUpload()}>បើកវីដេអូ / Open saved video</button></fieldset> : <p role="status" className="rounded-lg border border-dashed border-[#35385d] p-3 text-xs text-slate-400">មិនទាន់មានវីដេអូដែលបានរក្សាទេ។ សូម Upload វីដេអូជាមុន។ / No saved uploads yet. Upload a video to begin.</p>)}
+      </div>
+
+      {!source && <aside className="editor-welcome"><div className="editor-welcome-art"><FileVideo size={42} strokeWidth={1} /><strong>Your footage, elevated.</strong><span>EDIT WITH INTENTION</span></div><h3>លំហូរការងារកាត់ត / Your editing workspace</h3><ol><li><span>01</span><div><strong>បញ្ចូលវីដេអូ</strong><small>Upload your footage or reopen a saved video.</small></div></li><li><span>02</span><div><strong>ពិនិត្យ និងកាត់ត</strong><small>Trim, review quiet audio and arrange clips.</small></div></li><li><span>03</span><div><strong>នាំចេញ MP4</strong><small>Preview the result and download your video.</small></div></li></ol></aside>}
+      <fieldset disabled={Boolean(busy)} style={{ display: source ? undefined : 'none' }} className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2 disabled:opacity-70">
         <legend className="sr-only">Source video and trim selection</legend>
         <div className={`${panel} space-y-3`}>
           <label htmlFor="clip-source" className="block text-xs font-semibold text-slate-200">១. ជ្រើសវីដេអូ / Source video</label>
@@ -200,7 +231,7 @@ export function ClipTimelineEditor() {
         </div>
       </fieldset>
 
-      <fieldset disabled={Boolean(busy)} className={`${panel} min-w-0 space-y-3 disabled:opacity-70`}>
+      <fieldset disabled={Boolean(busy)} style={{ display: source ? undefined : 'none' }} className={`${panel} min-w-0 space-y-3 disabled:opacity-70`}>
         <legend className="sr-only">Ordered clip timeline</legend>
         <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold text-white">៣. Timeline <span className="text-xs font-normal text-slate-400">{clips.length}/12 clips</span></h3><span className="text-xs text-purple-200">{seconds(Math.max(0, totalDuration))} estimated output</span></div>
         {!clips.length ? <p className="rounded-lg border border-dashed border-[#35385d] p-5 text-center text-xs text-slate-400">ជ្រើសចន្លោះ រួចចុច Add clip។ / Select a range, then add a clip.</p> : <ol className="max-h-72 space-y-2 overflow-y-auto" aria-label="Timeline clip order">{clips.map((clip, index) => <li key={clip.key} className="flex flex-wrap items-center gap-2 rounded-lg border border-[#35385d] bg-[#16182e] p-2.5"><span className="rounded bg-purple-500/20 px-2 py-1 text-xs font-bold text-purple-200">{index + 1}</span><div className="min-w-0 flex-1"><p className="truncate text-xs text-white" title={clip.label}>{clip.label}</p><p className="text-[11px] text-slate-400">{seconds(clip.start_time)}–{seconds(clip.end_time)} · {seconds(clip.end_time - clip.start_time)}</p></div><button type="button" className={subtle} aria-label={`Move clip ${index + 1} earlier`} disabled={index === 0} onClick={() => moveClip(index, -1)}><ArrowUp className="h-3.5 w-3.5" /></button><button type="button" className={subtle} aria-label={`Move clip ${index + 1} later`} disabled={index === clips.length - 1} onClick={() => moveClip(index, 1)}><ArrowDown className="h-3.5 w-3.5" /></button><button type="button" className={subtle} aria-label={`Remove clip ${index + 1} from timeline`} onClick={() => { invalidate(); setClips(previous => previous.filter(item => item.key !== clip.key)); }}><Trash2 className="h-3.5 w-3.5" /></button></li>)}</ol>}

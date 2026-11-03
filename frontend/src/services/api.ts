@@ -97,6 +97,23 @@ export const api = {
     return res.json();
   },
 
+  async deleteCharacter(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/characters/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.detail || 'Could not delete the character. Please try again.');
+    }
+  },
+
+  async restoreCharacter(id: string): Promise<Character> {
+    const response = await fetch(`${API_BASE}/characters/${encodeURIComponent(id)}/restore`, { method: 'POST' });
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.detail || 'Could not restore the character. Please try again.');
+    }
+    return response.json();
+  },
+
   async addCharacter(char: Partial<Character>): Promise<Character> {
     const res = await fetch(`${API_BASE}/characters`, {
       method: 'POST',
